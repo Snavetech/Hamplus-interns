@@ -1,0 +1,131 @@
+/* ====================================================================
+   HAMPLUS INTERN PORTAL - RESPONSIVE STYLESHEET
+   Mobile, Tablet, and Desktop Adaptive Layouts
+   ==================================================================== */
+
+@media (max-width: 991.98px) {
+  /* Show Mobile Sidebar Toggle */
+  .sidebar-toggle-btn {
+    display: inline-flex;
+  }
+
+  /* Hidden sidebar by default on tablet & mobile */
+  .app-sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  /* Open sidebar drawer */
+  .app-sidebar.show {
+    transform: translateX(0);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Sidebar backdrop */
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    z-index: 1025;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease;
+  }
+
+  .sidebar-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Content area takes full width */
+  .app-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .app-topbar {
+    padding: 0 1rem;
+  }
+
+  .app-content {
+    padding: 1.25rem 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .page-header .page-title {
+    font-size: 1.35rem;
+  }
+
+  /* Live clock on mobile */
+  .live-clock-time {
+    font-size: 2.2rem;
+  }
+
+  /* Stat cards 1 column or 2 columns */
+  .stat-card {
+    padding: 1.1rem;
+    gap: 1rem;
+  }
+
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .auth-card {
+    border-radius: var(--radius-md);
+    box-shadow: none;
+    border: none;
+  }
+
+  .auth-wrapper {
+    padding: 0.75rem;
+  }
+
+  .auth-header {
+    padding: 1.75rem 1.25rem 1rem;
+  }
+
+  .auth-body {
+    padding: 1.25rem;
+  }
+
+  .live-clock-time {
+    font-size: 1.85rem;
+  }
+
+  /* Touch-friendly buttons and inputs */
+  .btn {
+    min-height: 42px;
+  }
+
+  .form-control, .form-select {
+    min-height: 42px;
+    font-size: 16px; /* Prevents iOS auto-zoom on input focus */
+  }
+
+  /* Table responsive wrap */
+  .table-responsive {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+
+  .topbar-right .user-display-name {
+    display: none;
+  }
+}

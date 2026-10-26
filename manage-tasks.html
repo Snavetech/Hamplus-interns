@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Management - Hamplus Intern Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    <aside class="app-sidebar" id="appSidebar"></aside>
+
+    <div class="app-main">
+      <header class="app-topbar" id="appTopbar"></header>
+
+      <main class="app-content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Task Management &amp; Assignments</h1>
+            <p class="page-subtitle">Delegate tasks, set delivery deadlines, and monitor work status across interns at Hamplus Hub.</p>
+          </div>
+          <div>
+            <button class="btn btn-primary shadow-sm" onclick="openCreateTaskModal()">
+              <i class="fa-solid fa-plus me-1"></i> Assign New Task
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="card mb-4 shadow-sm border">
+          <div class="card-body py-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-md-5">
+                <select class="form-select fs-7" id="taskFilterIntern"></select>
+              </div>
+              <div class="col-md-4">
+                <select class="form-select fs-7" id="taskFilterStatus">
+                  <option value="all">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <select class="form-select fs-7" id="taskFilterPriority">
+                  <option value="all">All Priorities</option>
+                  <option value="high">High Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="low">Low Priority</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasks Table Card -->
+        <div class="card shadow-sm">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-custom">
+                <thead>
+                  <tr>
+                    <th>Task Title &amp; Details</th>
+                    <th>Assigned Intern</th>
+                    <th>Priority</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="supervisorTasksTableBody">
+                  <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">
+                      <div class="spinner-border spinner-border-sm me-2"></div> Loading task roster...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state d-none" id="supervisorTasksEmptyState">
+              <div class="empty-state-icon fs-2"><i class="fa-solid fa-tasks"></i></div>
+              <div class="empty-state-title">No Tasks Found</div>
+              <p class="empty-state-text">No tasks match your chosen filters. Create a new task assignment above.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Task Create / Edit Modal -->
+  <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold" id="taskModalTitle">Assign Task</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="taskForm">
+          <div class="modal-body py-3">
+            <div class="mb-3">
+              <label for="taskTitleInput" class="form-label fs-8">Task Title</label>
+              <input type="text" class="form-control fs-7" id="taskTitleInput" placeholder="e.g. Build User Authentication UI" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="taskDescInput" class="form-label fs-8">Task Description &amp; Requirements</label>
+              <textarea class="form-control fs-7" id="taskDescInput" rows="3" placeholder="Provide clear task instructions..." required></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label for="taskAssigneeSelect" class="form-label fs-8">Assign to Intern</label>
+              <select class="form-select fs-7" id="taskAssigneeSelect" required></select>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="taskPrioritySelect" class="form-label fs-8">Priority Level</label>
+                <select class="form-select fs-7" id="taskPrioritySelect">
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label for="taskStatusSelect" class="form-label fs-8">Initial Status</label>
+                <select class="form-select fs-7" id="taskStatusSelect">
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="taskDeadlineInput" class="form-label fs-8">Deadline Date &amp; Time</label>
+              <input type="datetime-local" class="form-control fs-7" id="taskDeadlineInput" required>
+            </div>
+
+            <div class="mb-2">
+              <label for="taskNotesInput" class="form-label fs-8">Supervisor Notes / Guidance (Optional)</label>
+              <input type="text" class="form-control fs-7" id="taskNotesInput" placeholder="Special requirements, links to repo, etc.">
+            </div>
+          </div>
+          <div class="modal-footer border-top bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveTaskBtn">
+              <i class="fa-solid fa-floppy-disk me-1"></i> Save Task
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/manage-tasks.js"></script>
+</body>
+</html>

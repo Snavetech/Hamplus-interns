@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hamplus Intern Portal - Hamplus Hub, Abraka</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="bg-light">
+
+  <div class="min-vh-100 d-flex flex-column justify-content-between">
+    <!-- Simple Top Navigation -->
+    <header class="py-3 px-4 bg-white border-bottom shadow-sm">
+      <div class="container d-flex align-items-center justify-content-between">
+        <a href="index.html" class="brand-identity">
+          <span class="brand-name">HAMPLUS</span>
+          <span class="brand-label">INTERN PORTAL</span>
+        </a>
+        <div>
+          <a href="login.html" class="btn btn-navy">
+            <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="container my-auto py-5">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-7">
+          <div class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill mb-3 fw-semibold fs-7">
+            <i class="fa-solid fa-location-dot me-1"></i> Hamplus Hub &bull; Abraka, Delta State
+          </div>
+          <h1 class="display-4 fw-extrabold text-navy mb-3" style="color: #0F2042; line-height: 1.15;">
+            Empowering Future Tech Leaders in Delta State
+          </h1>
+          <p class="lead text-muted mb-4">
+            A centralized, reliable portal for Hamplus interns to record daily attendance, manage tasks, submit weekly reports, and receive supervisor feedback.
+          </p>
+          <div class="d-flex flex-wrap gap-3">
+            <a href="login.html" class="btn btn-primary btn-lg px-4 shadow-sm">
+              <i class="fa-solid fa-arrow-right-to-bracket me-2"></i> Access Portal
+            </a>
+            <a href="#features" class="btn btn-outline-navy btn-lg px-4">
+              <i class="fa-solid fa-circle-info me-2"></i> Learn More
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-5">
+          <div class="card border-0 shadow-lg p-4" style="border-radius: 16px;">
+            <div class="d-flex align-items-center mb-4">
+              <div class="stat-icon primary me-3">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold mb-0">Internship Program</h5>
+                <span class="text-muted fs-7">Hamplus Hub, Abraka</span>
+              </div>
+            </div>
+
+            <div class="list-group list-group-flush border-top border-bottom py-2">
+              <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center">
+                <i class="fa-solid fa-check text-success me-3 fs-6"></i>
+                <span class="fs-7 text-dark">One-click trusted daily attendance tracking</span>
+              </div>
+              <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center">
+                <i class="fa-solid fa-check text-success me-3 fs-6"></i>
+                <span class="fs-7 text-dark">Structured weekly internship report submission</span>
+              </div>
+              <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center">
+                <i class="fa-solid fa-check text-success me-3 fs-6"></i>
+                <span class="fs-7 text-dark">Task assignment and deadline management</span>
+              </div>
+              <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center">
+                <i class="fa-solid fa-check text-success me-3 fs-6"></i>
+                <span class="fs-7 text-dark">Direct supervisor reviews and constructive feedback</span>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-2">
+              <a href="login.html" class="btn btn-navy w-100 py-2">
+                Sign In to Your Account
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 bg-white border-top text-center text-muted fs-7">
+      <div class="container">
+        &copy; 2026 <strong>Hamplus Hub</strong>, Abraka, Delta State, Nigeria. All rights reserved.
+      </div>
+    </footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Smart redirect: If user is already authenticated, take them straight to their dashboard
+    document.addEventListener("DOMContentLoaded", async () => {
+      await HamplusAuth.redirectIfAuthenticated();
+    });
+  </script>
+</body>
+</html>

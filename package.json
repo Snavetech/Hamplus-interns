@@ -1,0 +1,19 @@
+{
+  "name": "hamplus-intern-portal",
+  "version": "1.0.0",
+  "description": "Hamplus Intern Portal - Hamplus Hub, Abraka, Delta State, Nigeria",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js",
+    "serve": "node server.js"
+  },
+  "keywords": [
+    "hamplus",
+    "intern-portal",
+    "abraka",
+    "supabase"
+  ],
+  "author": "Hamplus Hub",
+  "license": "ISC"
+}
