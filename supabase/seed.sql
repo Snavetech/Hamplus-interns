@@ -1,10 +1,17 @@
 -- ====================================================================
--- HAMPLUS INTERN PORTAL - SEED DATA (HOSTED SUPABASE READY)
+-- HAMPLUS INTERN PORTAL - SEED DATA (HOSTED SUPABASE READY & IDEMPOTENT)
 -- Hamplus Hub, Abraka, Delta State, Nigeria
 -- ====================================================================
 
--- Ensure search path includes auth and extensions
+-- 1. Ensure search path includes auth and extensions
 SET search_path = public, auth, extensions;
+
+-- 2. Fix any existing NULL tokens in auth.users that cause GoTrue scan error (Database error querying schema)
+UPDATE auth.users
+SET confirmation_token = COALESCE(confirmation_token, ''),
+    email_change = COALESCE(email_change, ''),
+    email_change_token_new = COALESCE(email_change_token_new, ''),
+    recovery_token = COALESCE(recovery_token, '');
 
 DO $$
 DECLARE
@@ -29,12 +36,15 @@ BEGIN
         v_sup_id := '11111111-1111-1111-1111-111111111111';
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password,
-            email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+            email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+            confirmation_token, email_change, email_change_token_new, recovery_token,
+            created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', v_sup_id, 'authenticated', 'authenticated',
             'supervisor@hamplus.com', v_encrypted_pwd, now(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Engr. David Okonkwo","role":"supervisor"}'::jsonb,
+            '', '', '', '',
             now(), now()
         );
 
@@ -54,12 +64,15 @@ BEGIN
         v_int1_id := '22222222-2222-2222-2222-222222222222';
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password,
-            email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+            email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+            confirmation_token, email_change, email_change_token_new, recovery_token,
+            created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', v_int1_id, 'authenticated', 'authenticated',
             'intern@hamplus.com', v_encrypted_pwd, now(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Blessing Adeleke","role":"intern"}'::jsonb,
+            '', '', '', '',
             now(), now()
         );
 
@@ -79,12 +92,15 @@ BEGIN
         v_int2_id := '33333333-3333-3333-3333-333333333333';
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password,
-            email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+            email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+            confirmation_token, email_change, email_change_token_new, recovery_token,
+            created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', v_int2_id, 'authenticated', 'authenticated',
             'emmanuel@hamplus.com', v_encrypted_pwd, now(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Emmanuel Chukwu","role":"intern"}'::jsonb,
+            '', '', '', '',
             now(), now()
         );
 
@@ -104,12 +120,15 @@ BEGIN
         v_int3_id := '44444444-4444-4444-4444-444444444444';
         INSERT INTO auth.users (
             instance_id, id, aud, role, email, encrypted_password,
-            email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+            email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+            confirmation_token, email_change, email_change_token_new, recovery_token,
+            created_at, updated_at
         ) VALUES (
             '00000000-0000-0000-0000-000000000000', v_int3_id, 'authenticated', 'authenticated',
             'precious@hamplus.com', v_encrypted_pwd, now(),
             '{"provider":"email","providers":["email"]}'::jsonb,
             '{"full_name":"Precious Oghene","role":"intern"}'::jsonb,
+            '', '', '', '',
             now(), now()
         );
 
@@ -142,7 +161,7 @@ BEGIN
     UPDATE public.profiles SET supervisor_id = v_sup_id WHERE role = 'intern';
 
     -- ----------------------------------------------------------------
-    -- 6. SEED ATTENDANCE RECORDS
+    -- 6. SEED ATTENDANCE RECORDS (IDEMPOTENT)
     -- ----------------------------------------------------------------
     INSERT INTO public.attendance (intern_id, attendance_date, clock_in_at, clock_out_at, status, notes)
     VALUES
@@ -160,18 +179,35 @@ BEGIN
     ON CONFLICT (intern_id, attendance_date) DO NOTHING;
 
     -- ----------------------------------------------------------------
-    -- 7. SEED TASKS
+    -- 7. SEED TASKS (IDEMPOTENT)
     -- ----------------------------------------------------------------
-    INSERT INTO public.tasks (title, description, intern_id, assigned_by, priority, status, deadline, supervisor_notes)
-    VALUES
-        ('Implement Responsive Dashboard Cards', 'Build mobile-friendly grid components for intern metrics and announcements using Bootstrap 5 and custom CSS.', v_int1_id, v_sup_id, 'high', 'completed', timezone('utc'::text, now() - INTERVAL '2 days'), 'Ensure touch targets are at least 44x44px.'),
-        ('Connect Supabase RLS Policies', 'Audit attendance and weekly report tables to guarantee intern data isolation according to the master prompt.', v_int1_id, v_sup_id, 'high', 'in_progress', timezone('utc'::text, now() + INTERVAL '2 days'), 'Test with non-supervisor auth token.'),
-        ('Refactor Profile Editing View', 'Allow interns to update permitted personal details such as phone number and bio while locking core roles.', v_int1_id, v_sup_id, 'medium', 'pending', timezone('utc'::text, now() + INTERVAL '5 days'), 'Consult Hamplus hub design guideline.'),
-        ('Optimize Database Indexes for Attendance Logs', 'Analyze slow queries for intern date range filters and add composite B-Tree indexes on (intern_id, attendance_date).', v_int2_id, v_sup_id, 'medium', 'in_progress', timezone('utc'::text, now() + INTERVAL '3 days'), 'Check EXPLAIN ANALYZE output.'),
-        ('Design Empty States and Micro-Interactions', 'Create clear, helpful SVG illustrations and typography for zero-record states across dashboard widgets.', v_int3_id, v_sup_id, 'low', 'completed', timezone('utc'::text, now() - INTERVAL '1 day'), 'Keep colors aligned with Navy and Accent Blue.');
+    IF NOT EXISTS (SELECT 1 FROM public.tasks WHERE intern_id = v_int1_id AND title = 'Implement Responsive Dashboard Cards') THEN
+        INSERT INTO public.tasks (title, description, intern_id, assigned_by, priority, status, deadline, supervisor_notes)
+        VALUES ('Implement Responsive Dashboard Cards', 'Build mobile-friendly grid components for intern metrics and announcements using Bootstrap 5 and custom CSS.', v_int1_id, v_sup_id, 'high', 'completed', timezone('utc'::text, now() - INTERVAL '2 days'), 'Ensure touch targets are at least 44x44px.');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.tasks WHERE intern_id = v_int1_id AND title = 'Connect Supabase RLS Policies') THEN
+        INSERT INTO public.tasks (title, description, intern_id, assigned_by, priority, status, deadline, supervisor_notes)
+        VALUES ('Connect Supabase RLS Policies', 'Audit attendance and weekly report tables to guarantee intern data isolation according to the master prompt.', v_int1_id, v_sup_id, 'high', 'in_progress', timezone('utc'::text, now() + INTERVAL '2 days'), 'Test with non-supervisor auth token.');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.tasks WHERE intern_id = v_int1_id AND title = 'Refactor Profile Editing View') THEN
+        INSERT INTO public.tasks (title, description, intern_id, assigned_by, priority, status, deadline, supervisor_notes)
+        VALUES ('Refactor Profile Editing View', 'Allow interns to update permitted personal details such as phone number and bio while locking core roles.', v_int1_id, v_sup_id, 'medium', 'pending', timezone('utc'::text, now() + INTERVAL '5 days'), 'Consult Hamplus hub design guideline.');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.tasks WHERE intern_id = v_int2_id AND title = 'Optimize Database Indexes for Attendance Logs') THEN
+        INSERT INTO public.tasks (title, description, intern_id, assigned_by, priority, status, deadline, supervisor_notes)
+        VALUES ('Optimize Database Indexes for Attendance Logs', 'Analyze slow queries for intern date range filters and add composite B-Tree indexes on (intern_id, attendance_date).', v_int2_id, v_sup_id, 'medium', 'in_progress', timezone('utc'::text, now() + INTERVAL '3 days'), 'Check EXPLAIN ANALYZE output.');
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.tasks WHERE intern_id = v_int3_id AND title = 'Design Empty States and Micro-Interactions') THEN
+        INSERT INTO public.tasks (title, description, intern_id, assigned_by, priority, status, deadline, supervisor_notes)
+        VALUES ('Design Empty States and Micro-Interactions', 'Create clear, helpful SVG illustrations and typography for zero-record states across dashboard widgets.', v_int3_id, v_sup_id, 'low', 'completed', timezone('utc'::text, now() - INTERVAL '1 day'), 'Keep colors aligned with Navy and Accent Blue.');
+    END IF;
 
     -- ----------------------------------------------------------------
-    -- 8. SEED WEEKLY REPORTS
+    -- 8. SEED WEEKLY REPORTS (IDEMPOTENT - WITH ON CONFLICT)
     -- ----------------------------------------------------------------
     INSERT INTO public.weekly_reports (intern_id, week_start, week_end, activities_completed, skills_learned, challenges, solutions, next_week_plan, status, supervisor_feedback, reviewed_by, submitted_at, reviewed_at)
     VALUES
@@ -204,30 +240,39 @@ BEGIN
             NULL,
             timezone('utc'::text, now() - INTERVAL '1 day'),
             NULL
-        );
+        )
+    ON CONFLICT (intern_id, week_start) DO NOTHING;
 
     -- ----------------------------------------------------------------
-    -- 9. SEED ANNOUNCEMENTS
+    -- 9. SEED ANNOUNCEMENTS (IDEMPOTENT)
     -- ----------------------------------------------------------------
-    INSERT INTO public.announcements (title, message, created_by, published_at, is_published, is_pinned)
-    VALUES
-        (
+    IF NOT EXISTS (SELECT 1 FROM public.announcements WHERE title = 'Welcome to Hamplus Hub Internship Cohort') THEN
+        INSERT INTO public.announcements (title, message, created_by, published_at, is_published, is_pinned)
+        VALUES (
             'Welcome to Hamplus Hub Internship Cohort',
             'Welcome to all our new interns in Abraka, Delta State! Please ensure your profile details are fully updated and review the internship guidelines in the portal. Office hours start strictly at 09:00 AM WAT.',
             v_sup_id,
             timezone('utc'::text, now() - INTERVAL '20 days'),
             true,
             true
-        ),
-        (
+        );
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.announcements WHERE title = 'Weekly Technical Sprint & Demo Sessions') THEN
+        INSERT INTO public.announcements (title, message, created_by, published_at, is_published, is_pinned)
+        VALUES (
             'Weekly Technical Sprint & Demo Sessions',
             'Every Friday at 03:00 PM WAT, all interns are expected to present a 5-minute demo of work completed during the sprint. Please ensure your weekly report is drafted ahead of time.',
             v_sup_id,
             timezone('utc'::text, now() - INTERVAL '5 days'),
             true,
             false
-        ),
-        (
+        );
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.announcements WHERE title = 'Abraka Tech Community Hackathon Registration') THEN
+        INSERT INTO public.announcements (title, message, created_by, published_at, is_published, is_pinned)
+        VALUES (
             'Abraka Tech Community Hackathon Registration',
             'Hamplus Hub is co-hosting the Delta State Youth Innovation Challenge next month. Interns are encouraged to form teams and submit project concepts. See your supervisor for sponsorship details.',
             v_sup_id,
@@ -235,4 +280,5 @@ BEGIN
             true,
             false
         );
+    END IF;
 END $$;
