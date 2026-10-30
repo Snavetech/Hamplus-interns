@@ -19,6 +19,30 @@ const MIME_TYPES = {
 
 const server = http.createServer((req, res) => {
   let reqPath = req.url.split('?')[0];
+
+  // Route API requests for local development
+  if (reqPath === '/api/send-welcome-email') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      req.body = body;
+      res.status = function(code) {
+        this.statusCode = code;
+        return this;
+      };
+      res.json = function(data) {
+        this.writeHead(this.statusCode || 200, {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
+        this.end(JSON.stringify(data));
+      };
+      const apiHandler = require('./api/send-welcome-email.js');
+      apiHandler(req, res);
+    });
+    return;
+  }
+
   if (reqPath === '/' || reqPath === '') {
     reqPath = '/index.html';
   }

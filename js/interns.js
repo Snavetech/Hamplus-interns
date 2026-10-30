@@ -281,14 +281,49 @@ function setupAddInternModal() {
         }
       }
 
+      // 4. Dispatch Automated Welcome Email
+      let emailResult = null;
+      if (window.HamplusEmail && typeof window.HamplusEmail.sendWelcomeEmail === "function") {
+        try {
+          emailResult = await window.HamplusEmail.sendWelcomeEmail({
+            fullName,
+            email,
+            department,
+            startDate,
+            password,
+            supervisorName: supervisorProfile ? supervisorProfile.full_name : "Engr. David Okonkwo"
+          });
+        } catch (emailErr) {
+          console.warn("Welcome email notice:", emailErr);
+        }
+      }
+
       form.reset();
       const bsModal = bootstrap.Modal.getInstance(modalEl);
       if (bsModal) bsModal.hide();
 
-      HamplusUI.showToast(
-        `Intern account successfully created for ${fullName}! Initial password: "${password}".`,
-        "success"
-      );
+      if (emailResult && emailResult.delivered) {
+        HamplusUI.showToast(
+          `Intern account created for ${fullName}! A welcome email has been delivered to ${email}.`,
+          "success"
+        );
+      } else {
+        HamplusUI.showToast(
+          `Intern account created for ${fullName}! Initial password: "${password}".`,
+          "success"
+        );
+        // Show Welcome Email preview dialog with copy & email app options
+        if (window.HamplusEmail && typeof window.HamplusEmail.showWelcomeModal === "function") {
+          window.HamplusEmail.showWelcomeModal({
+            fullName,
+            email,
+            department,
+            startDate,
+            password
+          });
+        }
+      }
+
       await loadInternDirectory();
     } catch (err) {
       console.error("Add intern error:", err);
