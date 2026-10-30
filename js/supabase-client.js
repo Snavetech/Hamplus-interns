@@ -378,6 +378,45 @@
             return { error: { message: "No account found with this email address." } };
           }
           return { data: {}, error: null };
+        },
+
+        signUp: async ({ email, password, options = {} }) => {
+          await new Promise((r) => setTimeout(r, 200));
+          const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || "[]");
+          const existing = profiles.find((p) => (p.email || "").toLowerCase() === (email || "").toLowerCase().trim());
+          if (existing) {
+            return {
+              data: { user: { id: existing.id, email: existing.email, identities: [] } },
+              error: null
+            };
+          }
+          const newId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "11111111-2222-3333-4444-" + Math.random().toString(36).substring(2, 14).padEnd(12, "0");
+          const newProfile = {
+            id: newId,
+            full_name: options.data?.full_name || email.split("@")[0],
+            email: email.trim(),
+            role: options.data?.role || "intern",
+            department: options.data?.department || "Software Development",
+            internship_start_date: new Date().toISOString().split("T")[0],
+            phone: null,
+            bio: null,
+            supervisor_id: null,
+            is_active: true,
+            created_at: new Date().toISOString()
+          };
+          profiles.unshift(newProfile);
+          localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+          return {
+            data: {
+              user: {
+                id: newId,
+                email: newProfile.email,
+                identities: [{ identity_id: newId, provider: "email" }],
+                user_metadata: { ...options.data }
+              }
+            },
+            error: null
+          };
         }
       };
     }
@@ -596,6 +635,31 @@
         localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(attendanceList));
 
         return { data: existingRecord, error: null };
+      }
+
+      if (funcName === "register_intern") {
+        const profiles = JSON.parse(localStorage.getItem(STORAGE_KEYS.PROFILES) || "[]");
+        const existing = profiles.find((p) => (p.email || "").toLowerCase() === (params.p_email || "").toLowerCase().trim());
+        if (existing) {
+          return { data: null, error: { message: `A user with email ${params.p_email} already exists.` } };
+        }
+        const newId = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : "11111111-2222-3333-4444-" + Math.random().toString(36).substring(2, 14).padEnd(12, "0");
+        const newRecord = {
+          id: newId,
+          full_name: params.p_full_name,
+          email: params.p_email,
+          role: "intern",
+          department: params.p_department || "Software Development",
+          phone: params.p_phone || null,
+          internship_start_date: params.p_start_date || new Date().toISOString().split("T")[0],
+          supervisor_id: currentUser ? currentUser.id : null,
+          bio: null,
+          is_active: true,
+          created_at: new Date().toISOString()
+        };
+        profiles.unshift(newRecord);
+        localStorage.setItem(STORAGE_KEYS.PROFILES, JSON.stringify(profiles));
+        return { data: newRecord, error: null };
       }
 
       return { data: null, error: { message: `Unknown RPC function: ${funcName}` } };

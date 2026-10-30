@@ -144,33 +144,151 @@ function setupAddInternModal() {
     saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Creating Account...`;
 
     const fullName = document.getElementById("newInternName").value.trim();
-    const email = document.getElementById("newInternEmail").value.trim();
+    const email = document.getElementById("newInternEmail").value.trim().toLowerCase();
     const department = document.getElementById("newInternDept").value;
     const phone = document.getElementById("newInternPhone").value.trim();
     const startDate = document.getElementById("newInternStartDate").value || new Date().toISOString().split("T")[0];
+    const passwordInput = document.getElementById("newInternPassword");
+    const password = (passwordInput ? passwordInput.value.trim() : "") || "password123";
 
     try {
-      // Create profile record (Using authorized supervisor permissions)
-      const newId = "user-" + Math.random().toString(36).substring(2, 10);
-      const { data, error } = await window.supabaseClient.from("profiles").insert({
-        id: newId,
-        full_name: fullName,
-        email: email,
-        role: "intern",
-        department: department,
-        phone: phone,
-        internship_start_date: startDate,
-        supervisor_id: supervisorProfile.id,
-        is_active: true
-      });
+      // 1. Validation check for duplicate email in current directory list
+      const alreadyExists = allInternsList.some(
+        (i) => (i.email || "").toLowerCase() === email
+      );
+      if (alreadyExists) {
+        throw new Error(`An intern with email "${email}" is already registered in the directory.`);
+      }
 
-      if (error) throw error;
+      // 2. Attempt creation via server-side RPC 'register_intern' if available
+      let registeredViaRpc = false;
+      let newUserId = null;
+
+      try {
+        const { data: rpcData, error: rpcError } = await window.supabaseClient.rpc("register_intern", {
+          p_email: email,
+          p_full_name: fullName,
+          p_department: department,
+          p_phone: phone || null,
+          p_start_date: startDate,
+          p_password: password
+        });
+
+        if (!rpcError && rpcData) {
+          registeredViaRpc = true;
+          newUserId = rpcData.id;
+        } else if (rpcError && rpcError.code !== "PGRST202") {
+          throw rpcError;
+        }
+      } catch (rpcErr) {
+        if (rpcErr.message && !rpcErr.message.includes("function") && !rpcErr.message.includes("schema cache") && rpcErr.code !== "PGRST202") {
+          throw rpcErr;
+        }
+        // Fallback to client-side auth.signUp flow if RPC function does not exist
+      }
+
+      // 3. Fallback: Create account via Supabase Auth
+      if (!registeredViaRpc) {
+        if (window.isUsingMockClient) {
+          const { data: mockData, error: mockErr } = await window.supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                full_name: fullName,
+                role: "intern",
+                department: department
+              }
+            }
+          });
+          if (mockErr) throw mockErr;
+          newUserId = mockData?.user?.id;
+
+          // Update extra fields in mock
+          await window.supabaseClient
+            .from("profiles")
+            .update({
+              phone: phone || null,
+              internship_start_date: startDate,
+              supervisor_id: supervisorProfile.id
+            })
+            .eq("id", newUserId);
+        } else {
+          // In live mode, create an isolated secondary client so supervisor session is NOT overwritten
+          const authClient = window.supabase.createClient(
+            window.HAMPLUS_CONFIG.SUPABASE_URL,
+            window.HAMPLUS_CONFIG.SUPABASE_ANON_KEY,
+            {
+              auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false
+              }
+            }
+          );
+
+          const { data: authData, error: authError } = await authClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                full_name: fullName,
+                role: "intern",
+                department: department
+              }
+            }
+          });
+
+          if (authError) {
+            if (authError.message && authError.message.toLowerCase().includes("rate limit")) {
+              throw new Error("Supabase email rate limit reached. Please wait a few minutes before registering another intern, or add the intern via the SQL function.");
+            }
+            throw authError;
+          }
+
+          // Check if user was already registered (Supabase returns empty identities array)
+          if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
+            throw new Error(`An account with email "${email}" is already registered in the system.`);
+          }
+
+          newUserId = authData?.user?.id;
+          if (!newUserId) {
+            throw new Error("Failed to initialize intern account. Please verify the email and try again.");
+          }
+
+          // Wait for trigger to insert into profiles and update extra fields
+          let updated = false;
+          for (let attempt = 0; attempt < 5; attempt++) {
+            const { data: updateData, error: updateError } = await window.supabaseClient
+              .from("profiles")
+              .update({
+                full_name: fullName,
+                department: department,
+                phone: phone || null,
+                internship_start_date: startDate,
+                supervisor_id: supervisorProfile.id,
+                is_active: true
+              })
+              .eq("id", newUserId)
+              .select();
+
+            if (!updateError && updateData && updateData.length > 0) {
+              updated = true;
+              break;
+            }
+            await new Promise((r) => setTimeout(r, 400));
+          }
+        }
+      }
 
       form.reset();
       const bsModal = bootstrap.Modal.getInstance(modalEl);
       if (bsModal) bsModal.hide();
 
-      HamplusUI.showToast(`Intern account created for ${fullName}! An invitation email will guide initial password setup.`, "success");
+      HamplusUI.showToast(
+        `Intern account successfully created for ${fullName}! Initial password: "${password}".`,
+        "success"
+      );
       await loadInternDirectory();
     } catch (err) {
       console.error("Add intern error:", err);
