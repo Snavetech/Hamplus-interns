@@ -1,35 +1,129 @@
 /* ====================================================================
-   HAMPLUS INTERN PORTAL - WELCOME EMAIL DISPATCH & PREVIEW CLIENT
+   HAMPLUS INTERN PORTAL - EMAILJS WELCOME EMAIL SERVICE
    Hamplus Hub, Abraka, Delta State, Nigeria
+   
+   100% Client-Side Automated Email Delivery using EmailJS.
+   No Resend, no third-party serverless backend dependencies.
    ==================================================================== */
 
 const HamplusEmail = {
-  // Dispatches welcome email via serverless endpoint /api/send-welcome-email
+  // Dispatches welcome email via EmailJS (SDK or REST API)
   async sendWelcomeEmail(params) {
-    try {
-      const portalUrl = window.location.origin + "/login.html";
-      const payload = {
-        portalUrl,
-        ...params
-      };
+    const config = window.HAMPLUS_CONFIG || {};
+    const serviceId = config.EMAILJS_SERVICE_ID || "";
+    const templateId = config.EMAILJS_TEMPLATE_ID || "";
+    const publicKey = config.EMAILJS_PUBLIC_KEY || "";
 
-      const res = await fetch("/api/send-welcome-email", {
+    const {
+      fullName = "Intern",
+      email = "",
+      department = "Software Development",
+      startDate = new Date().toISOString().split("T")[0],
+      password = "password123",
+      supervisorName = "Engr. David Okonkwo"
+    } = params;
+
+    const portalUrl = window.location.origin + "/login.html";
+
+    const plainText = `Dear ${fullName},
+
+Welcome to the Hamplus Hub Internship Program in Abraka, Delta State!
+
+Your account on the official Hamplus Intern Portal is now active. Here are your access details:
+- Portal URL: ${portalUrl}
+- Login Email: ${email}
+- Initial Password: ${password}
+- Assigned Track: ${department}
+- Start Date: ${startDate}
+- Assigned Supervisor: ${supervisorName}
+
+Hub Working Guidelines:
+1. Working hours: 09:00 AM – 05:00 PM WAT (Monday to Friday).
+2. Daily Attendance: Clock in daily on the portal before 09:15 AM WAT.
+3. Weekly Reports: Submit progress reports every Friday before close of business.
+
+Sign in to your account at: ${portalUrl}
+
+Warm regards,
+Technical Mentorship Team
+Hamplus Hub, Abraka, Delta State, Nigeria`;
+
+    // Check if EmailJS credentials are configured
+    const isConfigured =
+      serviceId &&
+      !serviceId.includes("your_service") &&
+      templateId &&
+      !templateId.includes("your_template") &&
+      publicKey &&
+      !publicKey.includes("your_public");
+
+    if (!isConfigured) {
+      console.warn(
+        "EmailJS credentials not configured yet. Add EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, and EMAILJS_PUBLIC_KEY to your .env file."
+      );
+      return {
+        success: true,
+        delivered: false,
+        configured: false,
+        message: "EmailJS credentials not configured yet."
+      };
+    }
+
+    const templateParams = {
+      to_name: fullName,
+      to_email: email,
+      email: email,
+      department: department,
+      start_date: startDate,
+      temporary_password: password,
+      password: password,
+      supervisor_name: supervisorName,
+      portal_url: portalUrl,
+      message: plainText
+    };
+
+    try {
+      // 1. Try using EmailJS browser SDK if available
+      if (typeof window.emailjs !== "undefined" && window.emailjs.send) {
+        window.emailjs.init({ publicKey: publicKey });
+        const res = await window.emailjs.send(serviceId, templateId, templateParams);
+        if (res.status === 200 || res.text === "OK") {
+          return {
+            success: true,
+            delivered: true,
+            provider: "emailjs",
+            message: `Welcome email successfully sent to ${email} via EmailJS!`
+          };
+        }
+      }
+
+      // 2. Fallback to direct EmailJS REST API
+      const response = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          service_id: serviceId,
+          template_id: templateId,
+          user_id: publicKey,
+          template_params: templateParams
+        })
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to trigger welcome email.");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`EmailJS API error (${response.status}): ${errorText}`);
       }
 
-      const data = await res.json();
-      return data;
+      return {
+        success: true,
+        delivered: true,
+        provider: "emailjs",
+        message: `Welcome email successfully sent to ${email} via EmailJS!`
+      };
     } catch (err) {
-      console.warn("Welcome email service response:", err);
+      console.error("EmailJS sending error:", err);
       return {
         success: false,
         delivered: false,
@@ -168,4 +262,3 @@ Hamplus Hub, Abraka, Delta State`;
 };
 
 window.HamplusEmail = HamplusEmail;
-

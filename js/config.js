@@ -23,7 +23,12 @@ window.HAMPLUS_CONFIG = {
   TIMEZONE: "Africa/Lagos",
   OFFICE_HOURS_START: "09:00",
   OFFICE_HOURS_END: "17:00",
-  LATE_THRESHOLD_MINUTES: 15 // After 09:15 AM marked as Late
+  LATE_THRESHOLD_MINUTES: 15, // After 09:15 AM marked as Late
+
+  // EmailJS Configuration (Client-side automated welcome emails)
+  EMAILJS_SERVICE_ID: "",
+  EMAILJS_TEMPLATE_ID: "",
+  EMAILJS_PUBLIC_KEY: ""
 };
 
 // Allow environment overrides from .env file or localStorage
@@ -47,6 +52,15 @@ window.HAMPLUS_CONFIG = {
         if ((key === "VITE_SUPABASE_ANON_KEY" || key === "SUPABASE_ANON_KEY") && val && !val.includes("placeholder-anon-key")) {
           window.HAMPLUS_CONFIG.SUPABASE_ANON_KEY = val;
         }
+        if ((key === "EMAILJS_SERVICE_ID" || key === "VITE_EMAILJS_SERVICE_ID") && val && !val.includes("your_service_id")) {
+          window.HAMPLUS_CONFIG.EMAILJS_SERVICE_ID = val;
+        }
+        if ((key === "EMAILJS_TEMPLATE_ID" || key === "VITE_EMAILJS_TEMPLATE_ID") && val && !val.includes("your_template_id")) {
+          window.HAMPLUS_CONFIG.EMAILJS_TEMPLATE_ID = val;
+        }
+        if ((key === "EMAILJS_PUBLIC_KEY" || key === "VITE_EMAILJS_PUBLIC_KEY") && val && !val.includes("your_emailjs_public_key")) {
+          window.HAMPLUS_CONFIG.EMAILJS_PUBLIC_KEY = val;
+        }
       });
     }
   } catch (e) {
@@ -57,8 +71,15 @@ window.HAMPLUS_CONFIG = {
   try {
     const savedUrl = localStorage.getItem("hamplus_supabase_url");
     const savedKey = localStorage.getItem("hamplus_supabase_anon_key");
+    const savedService = localStorage.getItem("hamplus_emailjs_service_id");
+    const savedTemplate = localStorage.getItem("hamplus_emailjs_template_id");
+    const savedPublicKey = localStorage.getItem("hamplus_emailjs_public_key");
+
     if (savedUrl) window.HAMPLUS_CONFIG.SUPABASE_URL = savedUrl;
     if (savedKey) window.HAMPLUS_CONFIG.SUPABASE_ANON_KEY = savedKey;
+    if (savedService) window.HAMPLUS_CONFIG.EMAILJS_SERVICE_ID = savedService;
+    if (savedTemplate) window.HAMPLUS_CONFIG.EMAILJS_TEMPLATE_ID = savedTemplate;
+    if (savedPublicKey) window.HAMPLUS_CONFIG.EMAILJS_PUBLIC_KEY = savedPublicKey;
   } catch (e) {
     console.warn("Storage access restricted", e);
   }
