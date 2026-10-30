@@ -154,27 +154,36 @@ Hamplus Hub, Abraka, Delta State, Nigeria`;
     document.getElementById("welcomeModalPwd").textContent = password;
 
     const portalUrl = window.location.origin + "/login.html";
-    const plainText = `Dear ${fullName},
+    const plainText = `============================================================
+  HAMPLUS HUB - INTERNSHIP PROGRAM
+  Hamplus Hub, Abraka, Delta State, Nigeria
+============================================================
+
+Dear ${fullName},
 
 Welcome to the Hamplus Hub Internship Program in Abraka, Delta State!
 
-Your account on the Hamplus Intern Portal is now active. Here are your access details:
-- Portal URL: ${portalUrl}
-- Username / Email: ${email}
-- Temporary Password: ${password}
-- Assigned Track: ${department}
-- Start Date: ${startDate}
+Your account on the official Hamplus Intern Portal is now active. Here are your access details:
 
-Hub Guidelines:
-1. Office hours start strictly at 09:00 AM WAT.
-2. Clock in daily on the portal before 09:15 AM WAT.
-3. Submit weekly progress reports every Friday.
+--- YOUR PLACEMENT & CREDENTIALS ---
+- Portal URL:          ${portalUrl}
+- Login Email:         ${email}
+- Temporary Password:  ${password}
+- Assigned Track:      ${department}
+- Start Date:          ${startDate}
+- Assigned Supervisor: ${supervisorName}
+
+--- HUB WORKING GUIDELINES ---
+1. Office hours: 09:00 AM – 05:00 PM WAT (Monday to Friday).
+2. Daily Attendance: Clock in daily on the portal before 09:15 AM WAT.
+3. Weekly Reports: Submit progress reports every Friday before close of business.
+4. Tasks: Check the Task Management board daily for assignments.
 
 Sign in at: ${portalUrl}
 
 Warm regards,
 Technical Mentorship Team
-Hamplus Hub, Abraka, Delta State`;
+Hamplus Hub, Abraka, Delta State, Nigeria`;
 
     // Mailto link
     const subjectEncoded = encodeURIComponent(`Welcome to Hamplus Hub Internship, ${fullName}!`);
@@ -202,19 +211,30 @@ Hamplus Hub, Abraka, Delta State`;
     const modalHtml = `
       <div class="modal fade" id="welcomeEmailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
-            <div class="modal-header bg-primary text-white border-bottom-0">
-              <h5 class="modal-title fw-bold fs-6">
-                <i class="fa-solid fa-envelope-circle-check me-2"></i>Welcome Email Prepared
-              </h5>
+          <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 16px; border: 1px solid #1e293b;">
+            <!-- Top Orange Accent Bar -->
+            <div style="height: 4px; background: linear-gradient(90deg, #FF7A00 0%, #FFA84A 100%);"></div>
+
+            <div class="modal-header border-bottom-0 py-3 px-4 text-white" style="background-color: #0b0f19;">
+              <div class="d-flex align-items-center">
+                <img src="assets/hamplus-logo.jpg" width="30" height="30" class="rounded me-2 border border-warning" alt="Hamplus Logo" style="object-fit: cover;">
+                <div>
+                  <h5 class="modal-title fw-bold fs-6 mb-0 text-white">
+                    HAM<span style="color: #FF7A00;">PLUS</span> <span class="fw-normal text-muted fs-8">| Onboarding</span>
+                  </h5>
+                  <div class="fs-8 text-muted">Welcome Email Notification</div>
+                </div>
+              </div>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body py-3">
-              <div class="alert alert-success py-2 px-3 fs-8 mb-3">
-                <i class="fa-solid fa-circle-check me-1"></i> Intern account successfully provisioned!
+
+            <div class="modal-body py-3 px-4">
+              <div class="alert py-2 px-3 fs-8 mb-3 border rounded" style="background-color: #FFF7ED; border-color: #FED7AA !important; color: #9A3412;">
+                <i class="fa-solid fa-circle-check me-1" style="color: #FF7A00;"></i>
+                <strong>Intern account provisioned!</strong> The welcome message with credentials is ready.
               </div>
 
-              <div class="card bg-light border-0 mb-3">
+              <div class="card border-0 mb-3" style="background-color: #F8FAFC; border-left: 4px solid #FF7A00 !important; border-radius: 8px;">
                 <div class="card-body p-3 fs-7">
                   <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted fs-8">Intern Name:</span>
@@ -226,30 +246,31 @@ Hamplus Hub, Abraka, Delta State`;
                   </div>
                   <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted fs-8">Training Track:</span>
-                    <span class="badge bg-secondary-subtle text-secondary border" id="welcomeModalDept">-</span>
+                    <span class="badge border" style="background-color: #FFF7ED; color: #C2410C; border-color: #FFEDD5 !important;" id="welcomeModalDept">-</span>
                   </div>
                   <div class="d-flex justify-content-between mt-2 pt-2 border-top">
                     <span class="text-muted fs-8">Temporary Password:</span>
-                    <code class="fw-bold text-primary fs-7" id="welcomeModalPwd">-</code>
+                    <code class="fw-bold fs-7 px-2 py-1 rounded" style="color: #C2410C; background-color: #FFEDD5; border: 1px solid #FDBA74;" id="welcomeModalPwd">-</code>
                   </div>
                 </div>
               </div>
 
               <div class="text-muted fs-8 mb-3">
-                <i class="fa-solid fa-circle-info me-1 text-primary"></i>
-                You can copy the welcome notification to clipboard or send directly through your email client.
+                <i class="fa-solid fa-circle-info me-1" style="color: #FF7A00;"></i>
+                If EmailJS is configured, this was sent automatically. You can also copy the formatted message to clipboard or send it via your email client.
               </div>
 
               <div class="d-flex gap-2">
                 <button type="button" class="btn btn-outline-secondary flex-fill fs-7" id="welcomeModalCopyBtn">
                   <i class="fa-solid fa-copy me-1"></i> Copy Message
                 </button>
-                <a href="#" class="btn btn-primary flex-fill fs-7" id="welcomeModalMailtoBtn" target="_blank">
+                <a href="#" class="btn flex-fill fs-7 text-white fw-bold" id="welcomeModalMailtoBtn" target="_blank" style="background: linear-gradient(135deg, #FF7A00 0%, #EA580C 100%); border: none; box-shadow: 0 4px 10px rgba(255, 122, 0, 0.35); border-radius: 30px;">
                   <i class="fa-solid fa-paper-plane me-1"></i> Send via Email App
                 </a>
               </div>
             </div>
-            <div class="modal-footer border-top bg-light py-2">
+
+            <div class="modal-footer border-top bg-light py-2 px-4">
               <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
