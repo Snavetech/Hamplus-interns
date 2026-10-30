@@ -8,7 +8,7 @@
 // Supported Email Providers (Zero external npm packages required!):
 // 1. Resend (Recommended: set RESEND_API_KEY)
 // 2. Brevo / Sendinblue (set BREVO_API_KEY)
-// 3. Custom From Address (optional: EMAIL_FROM, defaults to onboarding@resend.dev or hub@hamplus.com)
+// 3. Custom From Address (optional: EMAIL_FROM, defaults to onboarding@hamplus.dev or hub@hamplus.com)
 // ====================================================================
 
 function generateWelcomeHtml(params) {
@@ -402,7 +402,7 @@ module.exports = async function handler(req, res) {
     const isPlaceholderKey = !resendKey || resendKey.includes("your_api_key") || resendKey === "re_your_resend_api_key";
 
     if (resendKey && !isPlaceholderKey) {
-      const fromAddress = process.env.EMAIL_FROM || "Hamplus Hub <onboarding@resend.dev>";
+      const fromAddress = process.env.EMAIL_FROM || "Hamplus Hub <onboarding@hamplus.dev>";
       const resendResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
