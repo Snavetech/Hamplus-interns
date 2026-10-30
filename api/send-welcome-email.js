@@ -375,8 +375,33 @@ module.exports = async function handler(req, res) {
     const textBody = generateWelcomePlainText(emailParams);
 
     // 1. Check for RESEND_API_KEY (Recommended zero-dependency provider)
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
+    let resendKey = process.env.RESEND_API_KEY;
+
+    // Fallback: auto-read from local .env file if running in Node environment
+    if (!resendKey) {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const envPath = path.join(process.cwd(), '.env');
+        if (fs.existsSync(envPath)) {
+          const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('RESEND_API_KEY=')) {
+              resendKey = trimmed.split('=')[1].trim().replace(/^["']|["']$/g, '');
+              process.env.RESEND_API_KEY = resendKey;
+            }
+            if (trimmed.startsWith('EMAIL_FROM=')) {
+              process.env.EMAIL_FROM = trimmed.split('=').slice(1).join('=').trim().replace(/^["']|["']$/g, '');
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    const isPlaceholderKey = !resendKey || resendKey.includes("your_api_key") || resendKey === "re_your_resend_api_key";
+
+    if (resendKey && !isPlaceholderKey) {
       const fromAddress = process.env.EMAIL_FROM || "Hamplus Hub <onboarding@resend.dev>";
       const resendResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -467,3 +492,4 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+

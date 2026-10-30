@@ -2,6 +2,25 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Auto-load variables from .env if present
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) return;
+      const [key, ...rest] = trimmed.split('=');
+      if (key && rest.length > 0) {
+        const val = rest.join('=').trim().replace(/^["']|["']$/g, '');
+        if (!process.env[key.trim()]) {
+          process.env[key.trim()] = val;
+        }
+      }
+    });
+  }
+} catch (e) {}
+
 const PORT = process.env.PORT || 3000;
 
 const MIME_TYPES = {
