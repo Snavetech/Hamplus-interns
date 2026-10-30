@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadInternDirectory() {
+  const tableBody = document.getElementById("internsTableBody");
+  HamplusUI.renderTableSkeleton(tableBody, 5, 6);
+
   try {
     const { data: interns, error } = await window.supabaseClient
       .from("profiles")

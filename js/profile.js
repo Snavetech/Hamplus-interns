@@ -94,6 +94,9 @@ function setupProfileEditForm() {
 
       currentProfile.phone = phone;
       currentProfile.bio = bio;
+      if (window.HamplusAuth && typeof window.HamplusAuth.setCachedProfile === "function") {
+        window.HamplusAuth.setCachedProfile(currentProfile);
+      }
 
       HamplusUI.showToast("Personal profile updated successfully!", "success");
     } catch (err) {

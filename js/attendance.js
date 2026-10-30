@@ -47,6 +47,8 @@ function initLiveClock() {
 
 async function loadAttendanceData() {
   const todayStr = new Date().toISOString().split("T")[0];
+  const tableBody = document.getElementById("attendanceTableBody");
+  HamplusUI.renderTableSkeleton(tableBody, 4, 5);
 
   try {
     // 1. Fetch Today's Record

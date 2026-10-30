@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadAnnouncements() {
+  const container = document.getElementById("announcementsContainer");
+  HamplusUI.renderCardSkeletons(container, 3);
+
   try {
     let query = window.supabaseClient.from("announcements").select("*");
 

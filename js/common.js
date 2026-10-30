@@ -141,6 +141,76 @@ const HamplusUI = {
     bsModal.show();
   },
 
+  // Skeleton Loaders
+  renderTableSkeleton(tbody, rows = 5, cols = 5) {
+    if (!tbody) return;
+    let html = "";
+    for (let r = 0; r < rows; r++) {
+      html += `<tr>`;
+      for (let c = 0; c < cols; c++) {
+        if (c === 0) {
+          html += `
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <span class="skeleton skeleton-avatar"></span>
+                <div style="flex: 1;">
+                  <span class="skeleton skeleton-text" style="width: 70%;"></span>
+                  <span class="skeleton skeleton-text" style="width: 45%; height: 9px; margin-bottom: 0;"></span>
+                </div>
+              </div>
+            </td>`;
+        } else if (c === cols - 1) {
+          html += `
+            <td class="text-end">
+              <span class="skeleton skeleton-btn"></span>
+            </td>`;
+        } else {
+          html += `
+            <td>
+              <span class="skeleton skeleton-badge" style="width: ${50 + (r * 18) % 35}px;"></span>
+            </td>`;
+        }
+      }
+      html += `</tr>`;
+    }
+    tbody.innerHTML = html;
+  },
+
+  renderCardSkeletons(container, count = 3) {
+    if (!container) return;
+    let html = `<div class="row g-3">`;
+    for (let i = 0; i < count; i++) {
+      html += `
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm border p-3">
+            <div class="d-flex justify-content-between mb-3">
+              <span class="skeleton skeleton-badge"></span>
+              <span class="skeleton skeleton-badge" style="width: 50px;"></span>
+            </div>
+            <span class="skeleton skeleton-title"></span>
+            <span class="skeleton skeleton-text"></span>
+            <span class="skeleton skeleton-text" style="width: 75%;"></span>
+            <div class="border-top pt-3 mt-3 d-flex justify-content-between align-items-center">
+              <span class="skeleton skeleton-text" style="width: 80px; margin-bottom: 0;"></span>
+              <span class="skeleton skeleton-btn"></span>
+            </div>
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+  },
+
+  renderStatsSkeleton(elements) {
+    if (!elements) return;
+    elements.forEach((id) => {
+      const el = typeof id === "string" ? document.getElementById(id) : id;
+      if (el) {
+        el.innerHTML = `<span class="skeleton skeleton-stat-num"></span>`;
+      }
+    });
+  },
+
   // Render Dynamic Navigation (Sidebar & Topbar)
   renderNavigation(currentProfile, activePageId) {
     const isSupervisor = currentProfile.role === "supervisor";
@@ -220,9 +290,12 @@ const HamplusUI = {
     if (sidebarContainer) {
       sidebarContainer.innerHTML = `
         <div class="sidebar-header">
-          <a href="${isSupervisor ? "supervisor-dashboard.html" : "dashboard.html"}" class="brand-identity">
-            <span class="brand-name">HAMPLUS</span>
-            <span class="brand-label">INTERN PORTAL</span>
+          <a href="${isSupervisor ? "supervisor-dashboard.html" : "dashboard.html"}" class="brand-identity d-flex align-items-center gap-2 text-decoration-none">
+            <img src="assets/hamplus-logo.jpg" alt="Hamplus Logo" class="brand-logo" width="34" height="34">
+            <div>
+              <span class="brand-name text-white">HAM<span style="color: #FF7A00;">PLUS</span></span>
+              <span class="brand-label" style="color: #FF7A00;">INTERN PORTAL</span>
+            </div>
           </a>
           <button class="btn btn-sm text-white-50 d-lg-none" id="closeSidebarBtn">
             <i class="fa-solid fa-xmark fs-5"></i>
@@ -248,6 +321,19 @@ const HamplusUI = {
       // Sidebar events
       document.getElementById("closeSidebarBtn")?.addEventListener("click", () => this.toggleSidebar(false));
       document.getElementById("sidebarLogoutBtn")?.addEventListener("click", () => HamplusAuth.logout());
+
+      // Prefetch on hover for instantaneous page transitions (no loading lag)
+      document.querySelectorAll('a[href$=".html"]').forEach((link) => {
+        link.addEventListener("mouseenter", () => {
+          const href = link.getAttribute("href");
+          if (href && !href.startsWith("#") && !document.querySelector(`link[rel="prefetch"][href="${href}"]`)) {
+            const prefetch = document.createElement("link");
+            prefetch.rel = "prefetch";
+            prefetch.href = href;
+            document.head.appendChild(prefetch);
+          }
+        });
+      });
     }
 
     // Insert Topbar

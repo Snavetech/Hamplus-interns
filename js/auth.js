@@ -4,11 +4,48 @@
    ==================================================================== */
 
 const HamplusAuth = {
-  // Get currently logged-in user profile
-  async getCurrentProfile() {
+  CACHE_KEY: "hamplus_cached_profile",
+
+  // Update cached profile
+  setCachedProfile(profile) {
     try {
+      if (profile) {
+        sessionStorage.setItem(this.CACHE_KEY, JSON.stringify(profile));
+      } else {
+        sessionStorage.removeItem(this.CACHE_KEY);
+      }
+    } catch (e) {}
+  },
+
+  getCachedProfile() {
+    try {
+      const raw = sessionStorage.getItem(this.CACHE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.id) return parsed;
+      }
+    } catch (e) {}
+    return null;
+  },
+
+  // Get currently logged-in user profile (Instant cache + silent background verification)
+  async getCurrentProfile(forceRefresh = false) {
+    try {
+      // 1. Instant Cache hit: Return immediately to prevent page freeze/refresh lag
+      if (!forceRefresh) {
+        const cached = this.getCachedProfile();
+        if (cached) {
+          // Asynchronously verify/refresh in the background without blocking the UI
+          this.revalidateProfileInBackground(cached.id);
+          return cached;
+        }
+      }
+
       const { data: { user }, error: userError } = await window.supabaseClient.auth.getUser();
-      if (userError || !user) return null;
+      if (userError || !user) {
+        this.setCachedProfile(null);
+        return null;
+      }
 
       // Fetch user profile record
       const { data: profile, error: profileError } = await window.supabaseClient
@@ -17,23 +54,35 @@ const HamplusAuth = {
         .eq("id", user.id)
         .single();
 
-      if (profileError || !profile) {
-        // Fallback from metadata if profile query fails
-        return {
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email.split("@")[0],
-          role: user.user_metadata?.role || "intern",
-          department: user.user_metadata?.department || "General",
-          is_active: true
-        };
-      }
+      const resolved = profile || {
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email.split("@")[0],
+        role: user.user_metadata?.role || "intern",
+        department: user.user_metadata?.department || "General",
+        is_active: true
+      };
 
-      return profile;
+      this.setCachedProfile(resolved);
+      return resolved;
     } catch (e) {
       console.error("Error retrieving current profile:", e);
-      return null;
+      return this.getCachedProfile();
     }
+  },
+
+  // Silent background revalidation (never blocks page navigation)
+  async revalidateProfileInBackground(userId) {
+    try {
+      const { data: profile } = await window.supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (profile) {
+        this.setCachedProfile(profile);
+      }
+    } catch (e) {}
   },
 
   // Login handler
@@ -52,7 +101,7 @@ const HamplusAuth = {
     }
 
     // Retrieve user's role to determine destination
-    const profile = await this.getCurrentProfile();
+    const profile = await this.getCurrentProfile(true);
     if (!profile) {
       throw new Error("Unable to load user profile. Please contact the administrator.");
     }
@@ -62,11 +111,14 @@ const HamplusAuth = {
       throw new Error("Your account has been deactivated. Please contact your supervisor.");
     }
 
+    this.setCachedProfile(profile);
     return profile;
   },
 
   // Logout handler
   async logout() {
+    this.setCachedProfile(null);
+    sessionStorage.removeItem("hamplus_redirect_after_login");
     try {
       await window.supabaseClient.auth.signOut();
     } catch (e) {

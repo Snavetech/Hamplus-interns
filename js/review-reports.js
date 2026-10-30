@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadReportsData() {
+  const tableBody = document.getElementById("reportsTableBody");
+  HamplusUI.renderTableSkeleton(tableBody, 4, 6);
+
   try {
     // 1. Fetch Interns
     const { data: interns, error: intErr } = await window.supabaseClient

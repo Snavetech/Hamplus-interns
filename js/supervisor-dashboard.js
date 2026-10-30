@@ -21,6 +21,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function loadSupervisorMetrics() {
   const todayStr = new Date().toISOString().split("T")[0];
 
+  HamplusUI.renderStatsSkeleton(["statActiveInterns", "statPresentToday", "statPendingReviews", "statHubAnnouncements"]);
+  const tableBody = document.getElementById("supervisorAttendanceTableBody");
+  HamplusUI.renderTableSkeleton(tableBody, 4, 5);
+
   try {
     // 1. Fetch Active Interns
     const { data: interns, error: intErr } = await window.supabaseClient

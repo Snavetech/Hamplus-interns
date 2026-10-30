@@ -29,6 +29,9 @@ function setupFilterTabs() {
 }
 
 async function loadInternTasks() {
+  const container = document.getElementById("internTasksContainer");
+  HamplusUI.renderCardSkeletons(container, 3);
+
   try {
     const { data: tasks, error } = await window.supabaseClient
       .from("tasks")

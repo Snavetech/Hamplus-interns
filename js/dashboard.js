@@ -55,7 +55,10 @@ function initLiveClock() {
 }
 
 async function loadDashboardData(internId) {
+  const targetId = internId || (currentProfile ? currentProfile.id : null);
   const todayStr = new Date().toISOString().split("T")[0];
+
+  HamplusUI.renderStatsSkeleton(["statDaysPresent", "statPendingTasks", "statReportsCount"]);
 
   try {
     // 1. Fetch Today's Attendance
@@ -148,7 +151,7 @@ function renderTodayAttendanceCard(attendance) {
         const { data, error } = await window.supabaseClient.rpc("clock_in", { p_notes: "Clocked in via dashboard quick action" });
         if (error) throw error;
         HamplusUI.showToast("Successfully clocked in for today!", "success");
-        setTimeout(() => window.location.reload(), 1000);
+        await loadDashboardData();
       } catch (e) {
         HamplusUI.showToast(e.message || "Failed to clock in.", "danger");
         btn.disabled = false;
@@ -179,7 +182,7 @@ function renderTodayAttendanceCard(attendance) {
             const { data, error } = await window.supabaseClient.rpc("clock_out", { p_notes: "Clocked out via dashboard quick action" });
             if (error) throw error;
             HamplusUI.showToast("Successfully clocked out for today!", "success");
-            setTimeout(() => window.location.reload(), 1000);
+            await loadDashboardData();
           } catch (e) {
             HamplusUI.showToast(e.message || "Failed to clock out.", "danger");
           }

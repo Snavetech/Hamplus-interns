@@ -41,6 +41,9 @@ function initDefaultReportDates() {
 }
 
 async function loadWeeklyReports() {
+  const container = document.getElementById("reportsHistoryContainer");
+  HamplusUI.renderCardSkeletons(container, 3);
+
   try {
     const { data: reports, error } = await window.supabaseClient
       .from("weekly_reports")

@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadData() {
+  const tableBody = document.getElementById("tasksTableBody");
+  HamplusUI.renderTableSkeleton(tableBody, 4, 6);
+
   try {
     // 1. Fetch Interns for assignment dropdown and filters
     const { data: interns, error: intErr } = await window.supabaseClient
