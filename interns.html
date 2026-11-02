@@ -28,7 +28,10 @@
             <h1 class="page-title">Intern Directory &amp; Management</h1>
             <p class="page-subtitle">View, search, and manage registered interns at Hamplus Hub, Abraka.</p>
           </div>
-          <div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addSupervisorModal">
+              <i class="fa-solid fa-user-shield me-1"></i> Add Supervisor
+            </button>
             <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addInternModal">
               <i class="fa-solid fa-user-plus me-1"></i> Add New Intern
             </button>
@@ -77,6 +80,7 @@
                   <tr>
                     <th>Intern</th>
                     <th>Department</th>
+                    <th>Assigned Supervisor</th>
                     <th>Start Date</th>
                     <th>Contact Phone</th>
                     <th>Account Status</th>
@@ -126,15 +130,23 @@
               <div class="form-text fs-8 text-muted">A welcome invitation will guide secure credential initialization.</div>
             </div>
 
-            <div class="mb-3">
-              <label for="newInternDept" class="form-label fs-8">Training Area / Track</label>
-              <select class="form-select fs-7" id="newInternDept" required>
-                <option value="Frontend Web Development">Frontend Web Development</option>
-                <option value="Backend & Cloud Systems">Backend & Cloud Systems</option>
-                <option value="UI/UX & Product Design">UI/UX & Product Design</option>
-                <option value="Mobile App Development">Mobile App Development</option>
-                <option value="Data & Machine Learning">Data & Machine Learning</option>
-              </select>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label for="newInternDept" class="form-label fs-8">Training Area / Track</label>
+                <select class="form-select fs-7" id="newInternDept" required>
+                  <option value="Frontend Web Development">Frontend Web Development</option>
+                  <option value="Backend & Cloud Systems">Backend & Cloud Systems</option>
+                  <option value="UI/UX & Product Design">UI/UX & Product Design</option>
+                  <option value="Mobile App Development">Mobile App Development</option>
+                  <option value="Data & Machine Learning">Data & Machine Learning</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="newInternSupervisor" class="form-label fs-8">Assigned Supervisor</label>
+                <select class="form-select fs-7" id="newInternSupervisor" required>
+                  <!-- Dynamically populated with all active supervisors -->
+                </select>
+              </div>
             </div>
 
             <div class="mb-3">
@@ -165,43 +177,111 @@
     </div>
   </div>
 
-  <!-- View Profile Modal -->
+  <!-- Add New Supervisor Modal -->
+  <div class="modal fade" id="addSupervisorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-shield text-primary me-2"></i>Register New Supervisor</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="addSupervisorForm">
+          <div class="modal-body py-3">
+            <div class="mb-3">
+              <label for="newSupName" class="form-label fs-8">Full Legal Name</label>
+              <input type="text" class="form-control fs-7" id="newSupName" placeholder="e.g. Engr. Michael Adeyemi" required>
+            </div>
+            <div class="mb-3">
+              <label for="newSupEmail" class="form-label fs-8">Email Address</label>
+              <input type="email" class="form-control fs-7" id="newSupEmail" placeholder="e.g. michael@hamplus.com" required>
+            </div>
+            <div class="mb-3">
+              <label for="newSupDept" class="form-label fs-8">Department / Technical Lead Area</label>
+              <input type="text" class="form-control fs-7" id="newSupDept" placeholder="e.g. Frontend Web Development" required>
+            </div>
+            <div class="mb-3">
+              <label for="newSupPassword" class="form-label fs-8">Initial Temporary Password</label>
+              <input type="text" class="form-control fs-7" id="newSupPassword" value="password123" required>
+            </div>
+            <div class="mb-3">
+              <label for="newSupPhone" class="form-label fs-8">Contact Phone (Optional)</label>
+              <input type="tel" class="form-control fs-7" id="newSupPhone" placeholder="+234 800 000 0000">
+            </div>
+          </div>
+          <div class="modal-footer border-top bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="saveNewSupervisorBtn">
+              <i class="fa-solid fa-user-shield me-1"></i> Create Supervisor Account
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View & Edit Intern Profile Modal -->
   <div class="modal fade" id="viewInternProfileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 12px;">
         <div class="modal-header border-bottom">
-          <h5 class="modal-title fw-bold" id="viewModalName">Intern Profile</h5>
+          <h5 class="modal-title fw-bold" id="viewModalName">Intern Profile &amp; Assignment</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body py-3">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="fs-7 text-muted" id="viewModalEmail"></span>
-            <div id="viewModalStatus"></div>
-          </div>
+        <form id="editInternDetailsForm">
+          <input type="hidden" id="viewModalInternId">
+          <div class="modal-body py-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="fs-7 text-muted" id="viewModalEmail"></span>
+              <div id="viewModalStatus"></div>
+            </div>
 
-          <div class="row g-2 mb-3 bg-light p-3 rounded fs-7">
-            <div class="col-6">
-              <span class="text-muted fs-8 d-block">Department</span>
-              <span class="fw-semibold text-dark" id="viewModalDept"></span>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label for="viewModalDept" class="form-label fs-8 fw-semibold">Assigned Track / Department</label>
+                <select class="form-select fs-7" id="viewModalDept" required>
+                  <option value="Frontend Web Development">Frontend Web Development</option>
+                  <option value="Backend & Cloud Systems">Backend & Cloud Systems</option>
+                  <option value="UI/UX & Product Design">UI/UX & Product Design</option>
+                  <option value="Mobile App Development">Mobile App Development</option>
+                  <option value="Data & Machine Learning">Data & Machine Learning</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="viewModalSupervisor" class="form-label fs-8 fw-semibold">Assigned Supervisor</label>
+                <select class="form-select fs-7" id="viewModalSupervisor" required>
+                  <!-- Populated dynamically with all supervisors -->
+                </select>
+              </div>
             </div>
-            <div class="col-6">
-              <span class="text-muted fs-8 d-block">Start Date</span>
-              <span class="fw-semibold text-dark" id="viewModalStartDate"></span>
-            </div>
-            <div class="col-12 mt-2 pt-2 border-top">
-              <span class="text-muted fs-8 d-block">Contact Phone</span>
-              <span class="text-dark" id="viewModalPhone"></span>
-            </div>
-          </div>
 
-          <div class="mb-2">
-            <label class="form-label text-muted fs-8 text-uppercase">Intern Bio &amp; Goals</label>
-            <p class="fs-8 text-dark mb-0 bg-light p-2 rounded" id="viewModalBio"></p>
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label for="viewModalStartDate" class="form-label fs-8 fw-semibold">Start Date</label>
+                <input type="date" class="form-control fs-7" id="viewModalStartDate">
+              </div>
+              <div class="col-md-6">
+                <label for="viewModalPhone" class="form-label fs-8 fw-semibold">Contact Phone</label>
+                <input type="tel" class="form-control fs-7" id="viewModalPhone" placeholder="+234 800 000 0000">
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <label for="viewModalBio" class="form-label fs-8 fw-semibold text-muted text-uppercase">Intern Bio &amp; Goals</label>
+              <textarea class="form-control fs-7" id="viewModalBio" rows="2" placeholder="Intern bio or focus..."></textarea>
+            </div>
           </div>
-        </div>
-        <div class="modal-footer border-top bg-light">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
+          <div class="modal-footer border-top bg-light d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-primary fs-7" id="viewModalResendEmailBtn">
+              <i class="fa-solid fa-paper-plane me-1"></i> Resend Welcome Email
+            </button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary fs-7" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-primary fs-7" id="viewModalSaveBtn">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>

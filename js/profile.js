@@ -31,11 +31,31 @@ async function populateProfileView() {
   document.getElementById("profileAvatar").textContent = initials;
 
   // Editable fields
-  document.getElementById("editFullName").value = currentProfile.full_name;
-  document.getElementById("editEmail").value = currentProfile.email;
-  document.getElementById("editDepartment").value = currentProfile.department || "";
+  const isSupervisor = currentProfile.role === "supervisor";
+  const nameInput = document.getElementById("editFullName");
+  const deptInput = document.getElementById("editDepartment");
+  const nameHint = document.getElementById("editFullNameHint");
+  const deptHint = document.getElementById("editDepartmentHint");
+
+  nameInput.value = currentProfile.full_name || "";
+  document.getElementById("editEmail").value = currentProfile.email || "";
+  deptInput.value = currentProfile.department || "";
   document.getElementById("editPhone").value = currentProfile.phone || "";
   document.getElementById("editBio").value = currentProfile.bio || "";
+
+  if (isSupervisor) {
+    nameInput.disabled = false;
+    nameInput.classList.remove("bg-light");
+    if (nameHint) {
+      nameHint.innerHTML = `<i class="fa-solid fa-pen text-primary me-1"></i>Official supervisor display name across portal & emails.`;
+    }
+
+    deptInput.disabled = false;
+    deptInput.classList.remove("bg-light");
+    if (deptHint) {
+      deptHint.innerHTML = `<i class="fa-solid fa-pen text-primary me-1"></i>Official technical unit / lead area.`;
+    }
+  }
 
   // Fetch Supervisor Details if intern
   const supervisorSection = document.getElementById("supervisorInfoSection");
@@ -47,17 +67,19 @@ async function populateProfileView() {
           .from("profiles")
           .select("full_name, email, department")
           .eq("id", currentProfile.supervisor_id)
-          .single();
+          .maybeSingle();
 
-        if (sup) {
+        if (sup && sup.full_name) {
           document.getElementById("profileSupervisorName").textContent = sup.full_name;
-          document.getElementById("profileSupervisorEmail").textContent = sup.email;
+          document.getElementById("profileSupervisorEmail").textContent = sup.email || "supervisor@hamplus.com";
         } else {
-          document.getElementById("profileSupervisorName").textContent = "Engr. David Okonkwo";
-          document.getElementById("profileSupervisorEmail").textContent = "supervisor@hamplus.com";
+          // If RLS prevents intern from reading supervisor row directly, check cache or friendly label
+          const cachedSup = localStorage.getItem(`hamplus_sup_name_${currentProfile.supervisor_id}`);
+          document.getElementById("profileSupervisorName").textContent = cachedSup || "Assigned Technical Supervisor";
+          document.getElementById("profileSupervisorEmail").textContent = "support@hamplus.dev";
         }
       } catch (e) {
-        document.getElementById("profileSupervisorName").textContent = "Engr. David Okonkwo";
+        document.getElementById("profileSupervisorName").textContent = "Assigned Technical Supervisor";
       }
     } else {
       document.getElementById("profileSupervisorName").textContent = "Hamplus Hub Technical Lead";
@@ -80,25 +102,42 @@ function setupProfileEditForm() {
     const bio = document.getElementById("editBio").value.trim();
 
     try {
-      // In accordance with RLS rules, interns can only update permitted personal fields: phone and bio
+      const updates = {
+        phone: phone,
+        bio: bio,
+        updated_at: new Date().toISOString()
+      };
+
+      // Supervisors can update their official display name and department
+      if (currentProfile.role === "supervisor") {
+        const newFullName = document.getElementById("editFullName").value.trim();
+        const newDept = document.getElementById("editDepartment").value.trim();
+        if (newFullName) updates.full_name = newFullName;
+        if (newDept) updates.department = newDept;
+      }
+
       const { data, error } = await window.supabaseClient
         .from("profiles")
-        .update({
-          phone: phone,
-          bio: bio,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", currentProfile.id);
+        .update(updates)
+        .eq("id", currentProfile.id)
+        .select();
 
       if (error) throw error;
 
       currentProfile.phone = phone;
       currentProfile.bio = bio;
+      if (updates.full_name) currentProfile.full_name = updates.full_name;
+      if (updates.department) currentProfile.department = updates.department;
+
       if (window.HamplusAuth && typeof window.HamplusAuth.setCachedProfile === "function") {
         window.HamplusAuth.setCachedProfile(currentProfile);
       }
 
-      HamplusUI.showToast("Personal profile updated successfully!", "success");
+      // Re-render UI header and view with updated details
+      HamplusUI.renderNavigation(currentProfile, "profile");
+      await populateProfileView();
+
+      HamplusUI.showToast("Profile updated successfully!", "success");
     } catch (err) {
       console.error("Profile update error:", err);
       HamplusUI.showToast(err.message || "Failed to update profile.", "danger");

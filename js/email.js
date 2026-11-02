@@ -20,7 +20,7 @@ const HamplusEmail = {
       department = "Software Development",
       startDate = new Date().toISOString().split("T")[0],
       password = "password123",
-      supervisorName = "Engr. David Okonkwo"
+      supervisorName = "Assigned Technical Supervisor"
     } = params;
 
     const portalUrl = window.location.origin + "/login.html";
@@ -71,13 +71,18 @@ Hamplus Hub, Abraka, Delta State, Nigeria`;
 
     const templateParams = {
       to_name: fullName,
+      name: fullName,
+      intern_name: fullName,
       to_email: email,
       email: email,
+      recipient: email,
+      user_email: email,
       department: department,
       start_date: startDate,
       temporary_password: password,
       password: password,
       supervisor_name: supervisorName,
+      supervisor: supervisorName,
       portal_url: portalUrl,
       message: plainText
     };
@@ -85,15 +90,19 @@ Hamplus Hub, Abraka, Delta State, Nigeria`;
     try {
       // 1. Try using EmailJS browser SDK if available
       if (typeof window.emailjs !== "undefined" && window.emailjs.send) {
-        window.emailjs.init({ publicKey: publicKey });
-        const res = await window.emailjs.send(serviceId, templateId, templateParams);
-        if (res.status === 200 || res.text === "OK") {
-          return {
-            success: true,
-            delivered: true,
-            provider: "emailjs",
-            message: `Welcome email successfully sent to ${email} via EmailJS!`
-          };
+        try {
+          if (window.emailjs.init) window.emailjs.init({ publicKey: publicKey });
+          const res = await window.emailjs.send(serviceId, templateId, templateParams, publicKey);
+          if (res.status === 200 || res.text === "OK") {
+            return {
+              success: true,
+              delivered: true,
+              provider: "emailjs",
+              message: `Welcome email successfully sent to ${email} via EmailJS!`
+            };
+          }
+        } catch (sdkErr) {
+          console.warn("EmailJS SDK attempt failed, attempting REST fallback:", sdkErr);
         }
       }
 
@@ -145,7 +154,8 @@ Hamplus Hub, Abraka, Delta State, Nigeria`;
       email = "",
       department = "",
       password = "",
-      startDate = ""
+      startDate = "",
+      supervisorName = "Assigned Technical Supervisor"
     } = emailInfo;
 
     document.getElementById("welcomeModalInternName").textContent = fullName;

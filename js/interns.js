@@ -5,6 +5,7 @@
 
 let supervisorProfile = null;
 let allInternsList = [];
+let allSupervisorsList = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   supervisorProfile = await HamplusAuth.requireAuth("supervisor");
@@ -13,14 +14,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   HamplusUI.renderNavigation(supervisorProfile, "interns");
   setupSearchAndFilters();
   setupAddInternModal();
+  setupAddSupervisorModal();
+  setupEditInternModal();
   await loadInternDirectory();
 });
 
 async function loadInternDirectory() {
   const tableBody = document.getElementById("internsTableBody");
-  HamplusUI.renderTableSkeleton(tableBody, 5, 6);
+  HamplusUI.renderTableSkeleton(tableBody, 5, 7);
 
   try {
+    // 1. Fetch all supervisors to resolve assignments and populate selectors
+    const { data: sups, error: supErr } = await window.supabaseClient
+      .from("profiles")
+      .select("id, full_name, email, department")
+      .eq("role", "supervisor");
+
+    allSupervisorsList = sups || [];
+    // Ensure current supervisor is present
+    if (!allSupervisorsList.some((s) => s.id === supervisorProfile.id)) {
+      allSupervisorsList.unshift({
+        id: supervisorProfile.id,
+        full_name: supervisorProfile.full_name,
+        email: supervisorProfile.email,
+        department: supervisorProfile.department
+      });
+    }
+
+    renderSupervisorSelectOptions();
+
+    // 2. Fetch all interns
     const { data: interns, error } = await window.supabaseClient
       .from("profiles")
       .select("*")
@@ -34,6 +57,29 @@ async function loadInternDirectory() {
   } catch (err) {
     console.error("Error loading interns:", err);
     HamplusUI.showToast("Could not load intern directory.", "danger");
+  }
+}
+
+function renderSupervisorSelectOptions() {
+  const addSelect = document.getElementById("newInternSupervisor");
+  const editSelect = document.getElementById("viewModalSupervisor");
+
+  const buildOptions = (selectedId) => {
+    return allSupervisorsList
+      .map(
+        (s) =>
+          `<option value="${s.id}" ${s.id === selectedId ? "selected" : ""}>${HamplusUI.escapeHtml(
+            s.full_name
+          )} (${HamplusUI.escapeHtml(s.department || "Supervisor")})</option>`
+      )
+      .join("");
+  };
+
+  if (addSelect) {
+    addSelect.innerHTML = buildOptions(supervisorProfile.id);
+  }
+  if (editSelect) {
+    editSelect.innerHTML = buildOptions(supervisorProfile.id);
   }
 }
 
@@ -96,6 +142,10 @@ function applyFiltersAndRenderDirectory() {
       ? `<span class="badge bg-success-subtle text-success border border-success fs-8">Active</span>`
       : `<span class="badge bg-danger-subtle text-danger border border-danger fs-8">Deactivated</span>`;
 
+    const sup = allSupervisorsList.find((s) => s.id === intern.supervisor_id);
+    const supervisorName = sup ? sup.full_name : "Unassigned";
+    const supervisorDept = sup ? sup.department || "Supervisor" : "";
+
     html += `
       <tr>
         <td class="fw-semibold text-dark">
@@ -112,6 +162,10 @@ function applyFiltersAndRenderDirectory() {
         <td>
           <span class="badge bg-light text-dark border fs-8">${HamplusUI.escapeHtml(intern.department || "General")}</span>
         </td>
+        <td>
+          <div class="fw-semibold text-dark fs-7">${HamplusUI.escapeHtml(supervisorName)}</div>
+          <div class="text-muted fs-8">${HamplusUI.escapeHtml(supervisorDept)}</div>
+        </td>
         <td class="fs-8 text-muted">
           ${HamplusUI.formatDate(intern.internship_start_date)}
         </td>
@@ -121,8 +175,11 @@ function applyFiltersAndRenderDirectory() {
         <td>${statusBadge}</td>
         <td>
           <div class="d-flex gap-1 justify-content-end">
-            <button class="btn btn-sm btn-outline-secondary py-1 px-2 fs-8" onclick="viewInternProfileModal('${intern.id}')" title="View Profile">
-              <i class="fa-solid fa-eye"></i>
+            <button class="btn btn-sm btn-outline-secondary py-1 px-2 fs-8" onclick="viewInternProfileModal('${intern.id}')" title="View & Edit Intern Details">
+              <i class="fa-solid fa-user-pen"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-primary py-1 px-2 fs-8" onclick="resendWelcomeEmail('${intern.id}')" title="Send Welcome Email via EmailJS">
+              <i class="fa-solid fa-paper-plane"></i>
             </button>
             <button class="btn btn-sm ${intern.is_active ? "btn-outline-danger" : "btn-outline-success"} py-1 px-2 fs-8" onclick="toggleInternStatus('${intern.id}', ${intern.is_active})" title="${intern.is_active ? "Deactivate Account" : "Reactivate Account"}">
               <i class="fa-solid ${intern.is_active ? "fa-user-slash" : "fa-user-check"}"></i>
@@ -144,11 +201,15 @@ function setupAddInternModal() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     saveBtn.disabled = true;
-    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Creating Account...`;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Initializing...`;
 
     const fullName = document.getElementById("newInternName").value.trim();
     const email = document.getElementById("newInternEmail").value.trim().toLowerCase();
     const department = document.getElementById("newInternDept").value;
+    const supervisorSelect = document.getElementById("newInternSupervisor");
+    const selectedSupervisorId = (supervisorSelect ? supervisorSelect.value : "") || supervisorProfile.id;
+    const assignedSupervisor = allSupervisorsList.find((s) => s.id === selectedSupervisorId) || supervisorProfile;
+
     const phone = document.getElementById("newInternPhone").value.trim();
     const startDate = document.getElementById("newInternStartDate").value || new Date().toISOString().split("T")[0];
     const passwordInput = document.getElementById("newInternPassword");
@@ -180,6 +241,12 @@ function setupAddInternModal() {
         if (!rpcError && rpcData) {
           registeredViaRpc = true;
           newUserId = rpcData.id;
+
+          // Assign selected supervisor to profile
+          await window.supabaseClient
+            .from("profiles")
+            .update({ supervisor_id: selectedSupervisorId })
+            .eq("id", newUserId);
         } else if (rpcError && rpcError.code !== "PGRST202") {
           throw rpcError;
         }
@@ -187,7 +254,6 @@ function setupAddInternModal() {
         if (rpcErr.message && !rpcErr.message.includes("function") && !rpcErr.message.includes("schema cache") && rpcErr.code !== "PGRST202") {
           throw rpcErr;
         }
-        // Fallback to client-side auth.signUp flow if RPC function does not exist
       }
 
       // 3. Fallback: Create account via Supabase Auth
@@ -207,17 +273,15 @@ function setupAddInternModal() {
           if (mockErr) throw mockErr;
           newUserId = mockData?.user?.id;
 
-          // Update extra fields in mock
           await window.supabaseClient
             .from("profiles")
             .update({
               phone: phone || null,
               internship_start_date: startDate,
-              supervisor_id: supervisorProfile.id
+              supervisor_id: selectedSupervisorId
             })
             .eq("id", newUserId);
         } else {
-          // In live mode, create an isolated secondary client so supervisor session is NOT overwritten
           const authClient = window.supabase.createClient(
             window.HAMPLUS_CONFIG.SUPABASE_URL,
             window.HAMPLUS_CONFIG.SUPABASE_ANON_KEY,
@@ -244,12 +308,11 @@ function setupAddInternModal() {
 
           if (authError) {
             if (authError.message && authError.message.toLowerCase().includes("rate limit")) {
-              throw new Error("Supabase email rate limit reached. Please wait a few minutes before registering another intern, or add the intern via the SQL function.");
+              throw new Error("Supabase email rate limit reached. Please wait a moment before registering another intern.");
             }
             throw authError;
           }
 
-          // Check if user was already registered (Supabase returns empty identities array)
           if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
             throw new Error(`An account with email "${email}" is already registered in the system.`);
           }
@@ -260,7 +323,6 @@ function setupAddInternModal() {
           }
 
           // Wait for trigger to insert into profiles and update extra fields
-          let updated = false;
           for (let attempt = 0; attempt < 5; attempt++) {
             const { data: updateData, error: updateError } = await window.supabaseClient
               .from("profiles")
@@ -269,14 +331,13 @@ function setupAddInternModal() {
                 department: department,
                 phone: phone || null,
                 internship_start_date: startDate,
-                supervisor_id: supervisorProfile.id,
+                supervisor_id: selectedSupervisorId,
                 is_active: true
               })
               .eq("id", newUserId)
               .select();
 
             if (!updateError && updateData && updateData.length > 0) {
-              updated = true;
               break;
             }
             await new Promise((r) => setTimeout(r, 400));
@@ -284,7 +345,7 @@ function setupAddInternModal() {
         }
       }
 
-      // 4. Dispatch Automated Welcome Email
+      // 4. Dispatch Automated Welcome Email via EmailJS
       let emailResult = null;
       if (window.HamplusEmail && typeof window.HamplusEmail.sendWelcomeEmail === "function") {
         try {
@@ -294,10 +355,11 @@ function setupAddInternModal() {
             department,
             startDate,
             password,
-            supervisorName: supervisorProfile ? supervisorProfile.full_name : "Engr. David Okonkwo"
+            supervisorName: assignedSupervisor ? assignedSupervisor.full_name : supervisorProfile.full_name
           });
         } catch (emailErr) {
           console.warn("Welcome email notice:", emailErr);
+          emailResult = { delivered: false, message: emailErr.message };
         }
       }
 
@@ -307,22 +369,23 @@ function setupAddInternModal() {
 
       if (emailResult && emailResult.delivered) {
         HamplusUI.showToast(
-          `Intern account created for ${fullName}! A welcome email has been delivered to ${email}.`,
+          `Intern account created for ${fullName}! Welcome email delivered to ${email}.`,
           "success"
         );
       } else {
+        const errorNote = emailResult?.message ? ` (${emailResult.message})` : "";
         HamplusUI.showToast(
-          `Intern account created for ${fullName}! Initial password: "${password}".`,
+          `Intern account created for ${fullName}! Initial password: "${password}".${errorNote}`,
           "success"
         );
-        // Show Welcome Email preview dialog with copy & email app options
         if (window.HamplusEmail && typeof window.HamplusEmail.showWelcomeModal === "function") {
           window.HamplusEmail.showWelcomeModal({
             fullName,
             email,
             department,
             startDate,
-            password
+            password,
+            supervisorName: assignedSupervisor ? assignedSupervisor.full_name : supervisorProfile.full_name
           });
         }
       }
@@ -337,6 +400,211 @@ function setupAddInternModal() {
     }
   });
 }
+
+function setupAddSupervisorModal() {
+  const form = document.getElementById("addSupervisorForm");
+  if (!form) return;
+  const saveBtn = document.getElementById("saveNewSupervisorBtn");
+  const modalEl = document.getElementById("addSupervisorModal");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Creating...`;
+
+    const fullName = document.getElementById("newSupName").value.trim();
+    const email = document.getElementById("newSupEmail").value.trim().toLowerCase();
+    const department = document.getElementById("newSupDept").value.trim();
+    const password = document.getElementById("newSupPassword").value.trim() || "password123";
+    const phone = document.getElementById("newSupPhone").value.trim();
+
+    try {
+      const authClient = window.supabase.createClient(
+        window.HAMPLUS_CONFIG.SUPABASE_URL,
+        window.HAMPLUS_CONFIG.SUPABASE_ANON_KEY,
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false
+          }
+        }
+      );
+
+      const { data: authData, error: authError } = await authClient.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: {
+            full_name: fullName,
+            role: "supervisor",
+            department: department
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      const newSupId = authData?.user?.id;
+      if (newSupId) {
+        for (let i = 0; i < 5; i++) {
+          const { data, error } = await window.supabaseClient
+            .from("profiles")
+            .update({
+              full_name: fullName,
+              role: "supervisor",
+              department: department,
+              phone: phone || null,
+              is_active: true
+            })
+            .eq("id", newSupId)
+            .select();
+
+          if (!error && data && data.length > 0) break;
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      }
+
+      form.reset();
+      const bsModal = bootstrap.Modal.getInstance(modalEl);
+      if (bsModal) bsModal.hide();
+
+      HamplusUI.showToast(`Supervisor account successfully registered for ${fullName}!`, "success");
+      await loadInternDirectory();
+    } catch (err) {
+      console.error("Add supervisor error:", err);
+      HamplusUI.showToast(err.message || "Failed to create supervisor account.", "danger");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `<i class="fa-solid fa-user-shield me-1"></i> Create Supervisor Account`;
+    }
+  });
+}
+
+function setupEditInternModal() {
+  const form = document.getElementById("editInternDetailsForm");
+  if (!form) return;
+  const saveBtn = document.getElementById("viewModalSaveBtn");
+  const modalEl = document.getElementById("viewInternProfileModal");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const internId = document.getElementById("viewModalInternId").value;
+    if (!internId) return;
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Saving...`;
+
+    const department = document.getElementById("viewModalDept").value;
+    const supervisorId = document.getElementById("viewModalSupervisor").value;
+    const startDate = document.getElementById("viewModalStartDate").value;
+    const phone = document.getElementById("viewModalPhone").value.trim();
+    const bio = document.getElementById("viewModalBio").value.trim();
+
+    try {
+      const { error } = await window.supabaseClient
+        .from("profiles")
+        .update({
+          department: department,
+          supervisor_id: supervisorId,
+          internship_start_date: startDate || null,
+          phone: phone || null,
+          bio: bio || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", internId);
+
+      if (error) throw error;
+
+      const bsModal = bootstrap.Modal.getInstance(modalEl);
+      if (bsModal) bsModal.hide();
+
+      HamplusUI.showToast("Intern assignment and profile updated successfully!", "success");
+      await loadInternDirectory();
+    } catch (err) {
+      console.error("Update intern error:", err);
+      HamplusUI.showToast(err.message || "Failed to update intern profile.", "danger");
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk me-1"></i> Save Changes`;
+    }
+  });
+}
+
+window.viewInternProfileModal = function (internId) {
+  const intern = allInternsList.find((i) => i.id === internId);
+  if (!intern) return;
+
+  document.getElementById("viewModalInternId").value = intern.id;
+  document.getElementById("viewModalName").textContent = intern.full_name;
+  document.getElementById("viewModalEmail").textContent = intern.email;
+  document.getElementById("viewModalDept").value = intern.department || "Frontend Web Development";
+  document.getElementById("viewModalPhone").value = intern.phone || "";
+  document.getElementById("viewModalStartDate").value = intern.internship_start_date || "";
+  document.getElementById("viewModalBio").value = intern.bio || "";
+
+  const editSupervisorSelect = document.getElementById("viewModalSupervisor");
+  if (editSupervisorSelect) {
+    editSupervisorSelect.value = intern.supervisor_id || supervisorProfile.id;
+  }
+
+  document.getElementById("viewModalStatus").innerHTML = intern.is_active
+    ? `<span class="badge bg-success-subtle text-success border border-success">Active Account</span>`
+    : `<span class="badge bg-danger-subtle text-danger border border-danger">Deactivated</span>`;
+
+  // Resend email button inside modal
+  const resendBtn = document.getElementById("viewModalResendEmailBtn");
+  if (resendBtn) {
+    resendBtn.onclick = () => window.resendWelcomeEmail(intern.id);
+  }
+
+  const modal = new bootstrap.Modal(document.getElementById("viewInternProfileModal"));
+  modal.show();
+};
+
+window.resendWelcomeEmail = async function (internId) {
+  const intern = allInternsList.find((i) => i.id === internId);
+  if (!intern) return;
+
+  const sup = allSupervisorsList.find((s) => s.id === intern.supervisor_id) || supervisorProfile;
+  const supervisorName = sup ? sup.full_name : supervisorProfile.full_name;
+
+  const confirmed = await HamplusUI.confirm(
+    "Send Welcome Email",
+    `Send the official Hamplus Hub welcome email to ${intern.full_name} (${intern.email}) with ${supervisorName} as supervisor via EmailJS?`
+  );
+  if (!confirmed) return;
+
+  HamplusUI.showToast(`Dispatching welcome email to ${intern.email}...`, "info");
+
+  try {
+    const result = await window.HamplusEmail.sendWelcomeEmail({
+      fullName: intern.full_name,
+      email: intern.email,
+      department: intern.department || "Software Development",
+      startDate: intern.internship_start_date || new Date().toISOString().split("T")[0],
+      password: "password123",
+      supervisorName: supervisorName
+    });
+
+    if (result && result.delivered) {
+      HamplusUI.showToast(`Welcome email successfully delivered to ${intern.email}!`, "success");
+    } else {
+      HamplusUI.showToast(`Notice: ${result?.message || result?.error || "EmailJS failed to deliver."}`, "warning");
+      window.HamplusEmail.showWelcomeModal({
+        fullName: intern.full_name,
+        email: intern.email,
+        department: intern.department,
+        startDate: intern.internship_start_date,
+        password: "password123",
+        supervisorName: supervisorName
+      });
+    }
+  } catch (err) {
+    console.error("Resend welcome email error:", err);
+    HamplusUI.showToast(`Failed to send email: ${err.message}`, "danger");
+  }
+};
 
 window.toggleInternStatus = function (internId, currentActiveStatus) {
   const intern = allInternsList.find((i) => i.id === internId);
@@ -366,22 +634,4 @@ window.toggleInternStatus = function (internId, currentActiveStatus) {
     newStatus ? "Reactivate" : "Deactivate",
     !newStatus
   );
-};
-
-window.viewInternProfileModal = function (internId) {
-  const intern = allInternsList.find((i) => i.id === internId);
-  if (!intern) return;
-
-  document.getElementById("viewModalName").textContent = intern.full_name;
-  document.getElementById("viewModalEmail").textContent = intern.email;
-  document.getElementById("viewModalDept").textContent = intern.department || "General";
-  document.getElementById("viewModalPhone").textContent = intern.phone || "Not provided";
-  document.getElementById("viewModalStartDate").textContent = HamplusUI.formatDate(intern.internship_start_date);
-  document.getElementById("viewModalBio").textContent = intern.bio || "No biography provided by intern.";
-  document.getElementById("viewModalStatus").innerHTML = intern.is_active
-    ? `<span class="badge bg-success-subtle text-success border border-success">Active Account</span>`
-    : `<span class="badge bg-danger-subtle text-danger border border-danger">Deactivated</span>`;
-
-  const modal = new bootstrap.Modal(document.getElementById("viewInternProfileModal"));
-  modal.show();
 };

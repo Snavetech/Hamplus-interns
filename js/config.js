@@ -26,9 +26,9 @@ window.HAMPLUS_CONFIG = {
   LATE_THRESHOLD_MINUTES: 15, // After 09:15 AM marked as Late
 
   // EmailJS Configuration (Client-side automated welcome emails)
-  EMAILJS_SERVICE_ID: "",
-  EMAILJS_TEMPLATE_ID: "",
-  EMAILJS_PUBLIC_KEY: ""
+  EMAILJS_SERVICE_ID: "service_6n0yxwn",
+  EMAILJS_TEMPLATE_ID: "template_q3bv9pl",
+  EMAILJS_PUBLIC_KEY: "DkaW2LEaSokY3uEyJ"
 };
 
 // Allow environment overrides from .env file or localStorage
