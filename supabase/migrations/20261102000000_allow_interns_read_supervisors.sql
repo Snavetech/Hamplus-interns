@@ -19,3 +19,4 @@ CREATE POLICY "profiles_select_policy" ON public.profiles
         OR public.is_supervisor() 
         OR role = 'supervisor'
     );
+

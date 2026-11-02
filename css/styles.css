@@ -1,30 +1,39 @@
 /* ====================================================================
    HAMPLUS INTERN PORTAL - CORE STYLESHEET
    Hamplus Hub, Abraka, Delta State, Nigeria
-   Brand: Deep Navy Blue (#0F2042), Accent Blue (#2563EB), Off-White (#F8FAFC)
+   
+   Official Brand Palette (Matching Hamplus Logo):
+   - Pitch Black (#000000 / #0B0F19)
+   - Vibrant Hamplus Orange (#FF7A00)
+   - Amber / Tangerine Highlight (#FFA034)
+   - Crisp White (#FFFFFF)
    ==================================================================== */
 
 :root {
-  --primary: #0f2042;
-  --primary-dark: #0a162b;
-  --primary-light: #1a365d;
-  --primary-subtle: #eff6ff;
+  /* Core Hamplus Brand Colors */
+  --primary: #0b0f19;          /* Deep Sleek Black / Dark Obsidian */
+  --primary-dark: #000000;     /* Pure Pitch Black matching logo background */
+  --primary-light: #161e2e;    /* Deep Slate Charcoal */
+  --primary-subtle: #fff7ed;   /* Warm Soft Orange Mist */
   
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-light: #dbeafe;
+  --accent: #ff7a00;           /* Official Hamplus Vibrant Orange */
+  --accent-hover: #e66e00;     /* Deepened Orange on Hover */
+  --accent-active: #cc6200;    /* Rich Burnt Orange on Click */
+  --accent-light: #fff2e5;     /* Soft Warm Amber */
+  --accent-glow: rgba(255, 122, 0, 0.28);
   
   --bg-page: #f8fafc;
   --bg-card: #ffffff;
   --bg-muted: #f1f5f9;
   
-  --text-main: #0f172a;
+  --text-main: #0b0f19;
   --text-muted: #64748b;
   --text-light: #94a3b8;
   --text-inverse: #ffffff;
   
   --border-color: #e2e8f0;
   --border-light: #edf2f7;
+  --border-orange: #fed7aa;
   
   --success: #10b981;
   --success-subtle: #ecfdf5;
@@ -40,11 +49,12 @@
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-orange: 0 4px 16px rgba(255, 122, 0, 0.28);
   
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-full: 9999px;
   
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -63,8 +73,8 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--primary);
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -87,18 +97,18 @@ a:hover {
 }
 
 .brand-identity img.brand-logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   object-fit: cover;
-  border: 1.5px solid #FF7A00;
-  box-shadow: 0 2px 8px rgba(255, 122, 0, 0.25);
+  border: 2px solid #FF7A00;
+  box-shadow: 0 2px 10px rgba(255, 122, 0, 0.35);
   flex-shrink: 0;
 }
 
 .brand-identity .brand-name {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.08em;
   color: var(--primary);
   text-transform: uppercase;
@@ -110,11 +120,12 @@ a:hover {
 
 .brand-identity .brand-label {
   font-size: 0.62rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.18em;
   color: #FF7A00;
   text-transform: uppercase;
   display: block;
+  margin-top: 2px;
 }
 
 /* Auth / Split Page Layout */
@@ -123,8 +134,19 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f2042 0%, #1a365d 100%);
+  background: radial-gradient(circle at 50% 15%, #1c1106 0%, #0a0d14 55%, #000000 100%);
   padding: 1.5rem;
+  position: relative;
+}
+
+.auth-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF7A00 0%, #FFA84A 50%, #FF7A00 100%);
 }
 
 .auth-card {
@@ -132,13 +154,24 @@ a:hover {
   max-width: 460px;
   background: var(--bg-card);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 122, 0, 0.2);
   overflow: hidden;
+  position: relative;
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF7A00 0%, #FFA84A 100%);
 }
 
 .auth-header {
-  padding: 2.25rem 2rem 1.25rem;
+  padding: 2.5rem 2rem 1.25rem;
   text-align: center;
   border-bottom: 1px solid var(--border-light);
   background: #ffffff;
@@ -164,10 +197,10 @@ a:hover {
   position: relative;
 }
 
-/* Sidebar Navigation */
+/* Sidebar Navigation - Deep Pitch Black matching Logo Backdrop */
 .app-sidebar {
   width: var(--sidebar-width);
-  background-color: var(--primary);
+  background-color: var(--primary-dark);
   color: #ffffff;
   display: flex;
   flex-direction: column;
@@ -177,7 +210,8 @@ a:hover {
   left: 0;
   z-index: 1030;
   transition: var(--transition);
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 3px 0 16px rgba(0, 0, 0, 0.35);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-header {
@@ -186,8 +220,8 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: var(--primary-dark);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #000000;
 }
 
 .sidebar-header .brand-name {
@@ -195,7 +229,7 @@ a:hover {
 }
 
 .sidebar-header .brand-label {
-  color: #60a5fa;
+  color: #FF7A00;
 }
 
 .sidebar-nav {
@@ -206,10 +240,10 @@ a:hover {
 
 .nav-section-title {
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #94a3b8;
+  letter-spacing: 0.12em;
+  color: #64748b;
   padding: 0.75rem 0.85rem 0.35rem;
   margin-top: 0.5rem;
 }
@@ -217,12 +251,12 @@ a:hover {
 .sidebar-link {
   display: flex;
   align-items: center;
-  padding: 0.7rem 0.95rem;
+  padding: 0.72rem 0.95rem;
   color: #cbd5e1;
   font-size: 0.9rem;
   font-weight: 500;
   border-radius: var(--radius-md);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.3rem;
   transition: var(--transition);
   text-decoration: none;
 }
@@ -238,17 +272,19 @@ a:hover {
 
 .sidebar-link:hover {
   color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 122, 0, 0.12);
 }
 
 .sidebar-link:hover i {
-  color: #60a5fa;
+  color: #FF7A00;
 }
 
+/* Active Nav Item - Bold Vibrant Hamplus Orange Pill with Shadow */
 .sidebar-link.active {
   color: #ffffff;
-  background-color: var(--accent);
+  background: linear-gradient(135deg, #FF7A00 0%, #FF8F1F 100%);
   font-weight: 600;
+  box-shadow: 0 4px 14px rgba(255, 122, 0, 0.38);
 }
 
 .sidebar-link.active i {
@@ -263,8 +299,8 @@ a:hover {
 
 .sidebar-footer {
   padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: var(--primary-dark);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: #000000;
 }
 
 .user-snippet {
@@ -277,14 +313,15 @@ a:hover {
   width: 38px;
   height: 38px;
   border-radius: var(--radius-full);
-  background-color: var(--accent);
+  background: linear-gradient(135deg, #FF7A00 0%, #FFA23A 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(255, 122, 0, 0.3);
 }
 
 .user-info {
@@ -303,7 +340,8 @@ a:hover {
 
 .user-info .role-badge {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: #FF7A00;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
@@ -315,6 +353,12 @@ a:hover {
   display: flex;
   flex-direction: column;
   transition: var(--transition);
+  animation: pageFadeIn 0.15s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from { opacity: 0.85; transform: translateY(1px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Topbar Navigation */
@@ -356,7 +400,7 @@ a:hover {
 
 .sidebar-toggle-btn:hover {
   background: var(--bg-muted);
-  color: var(--primary);
+  color: var(--accent);
 }
 
 /* Main Content Body */
@@ -380,7 +424,7 @@ a:hover {
 
 .page-header .page-title {
   font-size: 1.55rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--primary);
   margin-bottom: 0.2rem;
 }
@@ -411,7 +455,7 @@ a:hover {
   padding: 1.15rem 1.4rem;
   border-top-left-radius: var(--radius-lg) !important;
   border-top-right-radius: var(--radius-lg) !important;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -445,7 +489,8 @@ a:hover {
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border-color: rgba(255, 122, 0, 0.3);
 }
 
 .stat-icon {
@@ -459,7 +504,11 @@ a:hover {
   flex-shrink: 0;
 }
 
-.stat-icon.primary { background-color: var(--primary-subtle); color: var(--accent); }
+.stat-icon.primary { 
+  background-color: #fff4eb; 
+  color: #FF7A00; 
+  border: 1px solid rgba(255, 122, 0, 0.2);
+}
 .stat-icon.success { background-color: var(--success-subtle); color: var(--success); }
 .stat-icon.warning { background-color: var(--warning-subtle); color: var(--warning); }
 .stat-icon.danger { background-color: var(--danger-subtle); color: var(--danger); }
@@ -470,17 +519,17 @@ a:hover {
 }
 
 .stat-label {
-  font-size: 0.825rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
 }
 
 .stat-value {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--primary);
   line-height: 1.1;
 }
@@ -491,9 +540,9 @@ a:hover {
   margin-top: 0.25rem;
 }
 
-/* Custom Buttons */
+/* Custom Buttons - Hamplus Brand Vibrant Orange */
 .btn {
-  font-weight: 500;
+  font-weight: 600;
   padding: 0.55rem 1.15rem;
   border-radius: var(--radius-md);
   font-size: 0.875rem;
@@ -505,69 +554,107 @@ a:hover {
 }
 
 .btn-primary {
-  background-color: var(--accent);
-  border-color: var(--accent);
-  color: #ffffff;
+  background-color: #FF7A00 !important;
+  border-color: #FF7A00 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(255, 122, 0, 0.25);
 }
 
-.btn-primary:hover, .btn-primary:focus {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
-  color: #ffffff;
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #e66e00 !important;
+  border-color: #e66e00 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(255, 122, 0, 0.38);
 }
 
+.btn-outline-primary {
+  background-color: transparent !important;
+  border: 1px solid #FF7A00 !important;
+  color: #FF7A00 !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+  background-color: #FF7A00 !important;
+  border-color: #FF7A00 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.28);
+}
+
+/* Dark Pitch Black Button variant */
 .btn-navy {
-  background-color: var(--primary);
-  border-color: var(--primary);
-  color: #ffffff;
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.btn-navy:hover, .btn-navy:focus {
-  background-color: var(--primary-dark);
-  border-color: var(--primary-dark);
-  color: #ffffff;
+.btn-navy:hover, .btn-navy:focus, .btn-navy:active {
+  background-color: #1a202c !important;
+  border-color: #1a202c !important;
+  color: #ffffff !important;
 }
 
 .btn-outline-navy {
   background-color: transparent;
-  border: 1px solid var(--primary);
-  color: var(--primary);
+  border: 1px solid #000000;
+  color: #000000;
 }
 
 .btn-outline-navy:hover {
-  background-color: var(--primary);
+  background-color: #000000;
   color: #ffffff;
 }
 
-/* Attendance Clock Card */
+.bg-navy {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.text-navy {
+  color: #000000 !important;
+}
+
+/* Attendance Clock Card - Sleek Obsidian with Vibrant Orange Accent */
 .clock-widget-card {
-  background: linear-gradient(135deg, #0f2042 0%, #1e3a8a 100%);
+  background: linear-gradient(135deg, #000000 0%, #150f08 50%, #241405 100%);
   color: #ffffff;
-  border: none;
+  border: 1px solid rgba(255, 122, 0, 0.35);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.clock-widget-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF7A00 0%, #FFA84A 100%);
 }
 
 .clock-widget-card::after {
   content: '';
   position: absolute;
-  top: -20px;
-  right: -20px;
-  width: 140px;
-  height: 140px;
-  background: rgba(255, 255, 255, 0.04);
+  top: -30px;
+  right: -30px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(255, 122, 0, 0.15) 0%, transparent 70%);
   border-radius: var(--radius-full);
   pointer-events: none;
 }
 
 .live-clock-time {
   font-size: 2.75rem;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  color: #ffffff;
 }
 
 .live-clock-date {
@@ -583,7 +670,7 @@ a:hover {
   padding: 0.35rem 0.75rem;
   border-radius: var(--radius-full);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .attendance-pill.clocked-in {
@@ -599,9 +686,9 @@ a:hover {
 }
 
 .attendance-pill.not-clocked {
-  background-color: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: rgba(255, 122, 0, 0.18);
+  color: #FFA034;
+  border: 1px solid rgba(255, 122, 0, 0.45);
 }
 
 /* Status Badges */
@@ -621,17 +708,68 @@ a:hover {
 .badge-absent { background-color: var(--danger-subtle); color: #991b1b; border: 1px solid #fecaca; }
 
 .badge-pending { background-color: #f8fafc; color: #475569; border: 1px solid #cbd5e1; }
-.badge-in_progress { background-color: var(--info-subtle); color: #0369a1; border: 1px solid #bae6fd; }
+.badge-in_progress { background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 .badge-completed { background-color: var(--success-subtle); color: #065f46; border: 1px solid #a7f3d0; }
 
 .badge-draft { background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-.badge-submitted { background-color: var(--info-subtle); color: #075985; border: 1px solid #bae6fd; }
+.badge-submitted { background-color: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 .badge-reviewed { background-color: var(--success-subtle); color: #065f46; border: 1px solid #a7f3d0; }
 .badge-needs_revision { background-color: var(--warning-subtle); color: #92400e; border: 1px solid #fde68a; }
 
 .priority-high { color: var(--danger); font-weight: 700; }
-.priority-medium { color: var(--warning); font-weight: 600; }
+.priority-medium { color: var(--accent); font-weight: 700; }
 .priority-low { color: #64748b; font-weight: 500; }
+
+/* Global Bootstrap Primary Overrides for Hamplus Brand */
+.text-primary {
+  color: #FF7A00 !important;
+}
+
+.bg-primary {
+  background-color: #FF7A00 !important;
+  color: #ffffff !important;
+}
+
+.border-primary {
+  border-color: #FF7A00 !important;
+}
+
+.badge.bg-primary {
+  background-color: #FF7A00 !important;
+  color: #ffffff !important;
+}
+
+.badge.bg-primary-subtle {
+  background-color: #fff4eb !important;
+  color: #c25e00 !important;
+  border: 1px solid #fed7aa !important;
+}
+
+/* Modals */
+.modal-content {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header {
+  border-top: 3px solid #FF7A00;
+}
+
+/* Task Filter Tabs */
+.task-filter-btn {
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+.task-filter-btn.active {
+  background-color: #FF7A00 !important;
+  border-color: #FF7A00 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(255, 122, 0, 0.3);
+}
 
 /* Custom Tables */
 .table-custom {
@@ -645,7 +783,7 @@ a:hover {
   background-color: var(--bg-muted);
   color: var(--text-muted);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.85rem 1.15rem;
@@ -661,7 +799,7 @@ a:hover {
 }
 
 .table-custom tbody tr:hover td {
-  background-color: #f8fafc;
+  background-color: #fffcf8;
 }
 
 .table-custom tbody tr:last-child td {
@@ -686,9 +824,14 @@ a:hover {
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  border-color: #FF7A00;
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.2);
   outline: none;
+}
+
+.form-check-input:checked {
+  background-color: #FF7A00;
+  border-color: #FF7A00;
 }
 
 /* Empty States */
@@ -699,13 +842,13 @@ a:hover {
 
 .empty-state-icon {
   font-size: 3rem;
-  color: #cbd5e1;
+  color: #fed7aa;
   margin-bottom: 1rem;
 }
 
 .empty-state-title {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--primary);
   margin-bottom: 0.35rem;
 }
@@ -723,7 +866,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   padding: 2.5rem;
-  color: var(--accent);
+  color: #FF7A00;
 }
 
 /* Toast Container */
@@ -753,8 +896,8 @@ a:hover {
 
 /* Demo Credentials Banner */
 .demo-credentials-box {
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
+  background: #fffaf5;
+  border: 1px dashed #fed7aa;
   border-radius: var(--radius-md);
   padding: 0.85rem;
   font-size: 0.8rem;
@@ -762,10 +905,10 @@ a:hover {
 }
 
 /* ====================================================================
-   SKELETON LOADERS & SMOOTH PAGE TRANSITIONS
+   SKELETON LOADERS
    ==================================================================== */
 .skeleton {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background: linear-gradient(90deg, #f1f5f9 25%, #fed7aa 50%, #f1f5f9 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
   border-radius: var(--radius-sm);
@@ -825,14 +968,4 @@ a:hover {
   width: 100%;
   border-radius: var(--radius-md);
   margin-bottom: 1rem;
-}
-
-/* Instant smooth view transitions - prevents jarring white flickers */
-.app-main {
-  animation: pageFadeIn 0.15s ease-out;
-}
-
-@keyframes pageFadeIn {
-  from { opacity: 0.85; transform: translateY(1px); }
-  to { opacity: 1; transform: translateY(0); }
 }
